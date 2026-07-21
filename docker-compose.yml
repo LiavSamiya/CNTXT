@@ -22,7 +22,9 @@ services:
     init: true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/bootstrap')"]
+      # /api/policy is a lightweight endpoint that proves the dashboard and
+      # local policy layer are both available.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/policy')"]
       interval: 10s
       timeout: 3s
       retries: 5

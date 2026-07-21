@@ -6,6 +6,9 @@
     <meta name="theme-color" content="#080b12" />
     <meta name="description" content="CNTXT is the AI Context Firewall for MCP." />
     <title>CNTXT | AI Context Firewall</title>
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="ShieldAI — AI Context Firewall. Protect sensitive enterprise data before it reaches the LLM." />
+    <title>ShieldAI | AI Context Firewall</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -92,6 +95,15 @@
             <div class="arch-node proxy-node"><span class="node-label">CNTXT MCP PROXY</span><strong>Policy + mapping engine</strong><small>Transforms context locally</small></div>
             <div class="arch-arrow"><span>SAFE LOOKUP</span><i></i></div>
             <div class="connector-stack"><span class="node-label">MCP CONNECTORS</span><div class="connector-pills"><span>Slack</span><span>GitHub</span><span>Google Drive</span></div></div>
+          <div class="panel-card connectors-card">
+            <div class="card-header">
+              <h2>🔌 Connected MCPs</h2>
+            </div>
+            <div class="connector-list" id="connectorList">
+              <div class="connector"><span class="conn-dot"></span> Loading connectors…</div>
+            </div>
+            <button id="connectDriveBtn" class="connect-drive-btn" type="button">Connect Google Drive</button>
+            <p id="driveConnectHint" class="dict-hint">Uses local OAuth and read-only Drive access.</p>
           </div>
           <div class="connection-detail-grid" id="connectionCards"></div>
         </section>

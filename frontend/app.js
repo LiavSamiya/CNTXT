@@ -15,6 +15,72 @@ const state = { policy: null, overview: null, connectors: [], memory: [], active
 
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+/* ═══════════════════════════════════════════════════════════════════════
+   ShieldAI — AI Context Firewall — Frontend Logic
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+
+let policy = null;
+
+// ── Bootstrap ───────────────────────────────────────────────────────────
+async function loadPolicy() {
+  const res = await fetch('/api/policy');
+  policy = await res.json();
+  renderCategories();
+  renderDictionary();
+}
+
+async function loadConnectors() {
+  const res = await fetch('/api/connectors');
+  const connectors = await res.json();
+  const list = $('connectorList');
+  list.innerHTML = connectors.map(connector => {
+    const active = connector.status === 'Connected';
+    return `<div class="connector">
+      <span class="conn-dot ${active ? 'on' : ''}"></span>
+      <span>${esc(connector.name)}</span>
+      <span class="conn-tools">${esc(connector.status)} · ${connector.tools} tool${connector.tools === 1 ? '' : 's'}</span>
+    </div>`;
+  }).join('');
+  const drive = connectors.find(connector => connector.name === 'Google Drive');
+  if (drive?.detail) $('driveConnectHint').textContent = drive.detail;
+}
+
+async function connectGoogleDrive() {
+  const button = $('connectDriveBtn');
+  button.disabled = true;
+  button.textContent = 'Opening Google sign-in…';
+  try {
+    const res = await fetch('/api/connectors/google-drive/authorize', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not connect Google Drive');
+    $('driveConnectHint').textContent = 'Google Drive connected with read-only access.';
+    await loadConnectors();
+  } catch (err) {
+    $('driveConnectHint').textContent = err.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Connect Google Drive';
+  }
+}
+
+// ── Categories (checkboxes) ─────────────────────────────────────────────
+function renderCategories() {
+  const grid = $('categoriesGrid');
+  const enabled = new Set(policy.hide_categories || []);
+  grid.innerHTML = (policy.available_categories || []).map(cat => {
+    const active = enabled.has(cat.id);
+    return `<div class="cat-item ${active ? 'active' : ''}" data-cat="${cat.id}">
+      <div class="cat-check">${active ? '✓' : ''}</div>
+      <span class="cat-label">${esc(cat.label)}</span>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.cat-item').forEach(el => {
+    el.addEventListener('click', () => toggleCategory(el.dataset.cat));
+  });
 }
 
 function showToast(message) {

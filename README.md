@@ -9,13 +9,12 @@ data, and preserves useful context with deterministic placeholders.
 ## What the demo proves
 
 1. An AI client calls a ShieldAI MCP tool instead of a connector directly.
-2. ShieldAI authenticates a demo employee and authorizes the requested source.
-3. A mock Slack connector returns enterprise data only to the gateway.
-4. The local policy engine detects protected values and replaces them with
+2. A connector returns enterprise data only to the gateway.
+3. The local policy engine detects protected values and replaces them with
    stable placeholders such as `[PROJECT_1]` and `[PERSON_1]`.
-5. The MCP response contains only the transformed text. The original values
+4. The MCP response contains only the transformed text. The original values
    and the mapping never leave the gateway.
-6. An audit log records the policy decision without retaining the raw message.
+5. An audit log records the policy decision without retaining the raw message.
 
 ## Architecture
 
@@ -73,6 +72,23 @@ python backend/mcp_http.py
 Health check: `http://127.0.0.1:8765/health`  
 MCP endpoint: `http://127.0.0.1:8765/mcp`
 
+## Connect a real Google Drive (optional)
+
+ShieldAI uses a local, read-only OAuth connection. It never returns a Drive
+document to an MCP client before the Gateway has sanitized it.
+
+1. In Google Cloud Console, enable the Google Drive API and create a
+   **Desktop app** OAuth client.
+2. Download its JSON file and save it locally as
+   `secrets/google-oauth-client.json`. This directory is ignored by Git.
+3. Restart the dashboard, click **Connect Google Drive**, then approve the
+   read-only Google consent screen in your browser.
+
+Choose **Google Drive — Search Documents** in the dashboard or use
+`shieldai_search_documents` over MCP. Google Docs and text-based files are
+read locally; other file formats remain metadata-only until a local converter
+such as MarkItDown is added.
+
 ## Run with Docker (isolated from VooDo)
 
 ShieldAI now has its own Docker Compose project, bridge network
@@ -110,10 +126,10 @@ cd shieldai
 python backend/mcp_server.py
 ```
 
-An MCP client configuration can invoke `backend/mcp_server.py`. In this MVP,
-the authenticated identity is simulated through `SHIELDAI_DEMO_USER` (default:
-`john`). A production deployment would derive it from SSO/OAuth claims and
-preserve the source system's per-user authorization.
+An MCP client configuration can invoke `backend/mcp_server.py`. This MVP
+enforces data-transformation policy but does not yet implement enterprise SSO
+or per-user authorization. A production deployment should derive identity from
+SSO/OAuth claims and preserve the source system's per-user authorization.
 
 ## Run ShieldAI Desktop
 
@@ -129,17 +145,16 @@ See `desktop/README.md` for the Windows Python setting.
 
 ## Demo scenario
 
-Choose **John / Engineer**, then search Slack for `Falcon`. The source contains
-project, employee, location, budget, and infrastructure details. ShieldAI
-returns safe context such as:
+Search Slack for `Falcon`. The source contains project, employee, location,
+budget, and infrastructure details. ShieldAI returns safe context such as:
 
 ```text
 [PROJECT_1] validation is delayed at [LOCATION_1].
 [PERSON_1] requested a review of [AMOUNT_1].
 ```
 
-Switch to **Maya / Finance** and request the same engineering channel to show a
-blocked authorization decision.
+For a policy demonstration, disable a category or add a custom dictionary term,
+run the same query again, and compare the safe context.
 
 ## Security boundaries and limitations
 
@@ -161,9 +176,9 @@ blocked authorization decision.
 
 ```text
 backend/
-  authorization.py   Demo identities and source permissions
   connectors.py      Fake enterprise datasets used by mock adapters
   context_proxy.py   Routes protected calls to upstream MCP adapters
+  google_drive.py    Optional local, read-only Google Drive OAuth connector
   gateway.py         Policy enforcement orchestration
   project_memory.py  Local SQLite placeholder continuity per project
   sanitizer.py       Local detection and deterministic placeholders
