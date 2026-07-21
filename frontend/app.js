@@ -84,7 +84,7 @@ async function runDemo() {
     state.entities += data.entities?.length || 0;
     updateMetrics();
     renderTimeline(data.decision, data.reason);
-    $('latency').textContent = `${data.audit.latency_ms} ms · ${data.entities.length} entities transformed`;
+    $('latency').textContent = `${data.audit.latency_ms} ms · ${data.entities.length} entities · ${data.project_memory_entries ?? 0} memory entries`;
     $('originalOutput').textContent = data.raw_context || 'Policy blocked the request before connector data was retrieved.';
     $('safeOutput').textContent = data.safe_context || 'No safe context returned because policy blocked the request.';
     $('responseOutput').textContent = data.decision === 'BLOCK'

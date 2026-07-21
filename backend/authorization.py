@@ -47,6 +47,7 @@ TOOL_SOURCE = {
     "shieldai_search_slack_messages": "slack",
     "shieldai_get_channel_history": "slack",
     "shieldai_search_documents": "drive",
+    "shieldai_search_github": "github",
 }
 
 
@@ -82,4 +83,3 @@ def authorize(user: User, tool_name: str, arguments: dict) -> tuple[bool, str]:
 def public_users() -> list[dict]:
     """Dashboard-safe identity view; no credentials are ever exposed."""
     return [asdict(user) for user in USERS.values()]
-

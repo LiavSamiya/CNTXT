@@ -13,8 +13,9 @@ from pathlib import Path
 from typing import Any
 
 from .authorization import authorize, get_user
-from .connectors import get_channel_history, search_documents, search_slack_messages
+from .context_proxy import ContextProxyEngine
 from .policies import get_policy
+from .project_memory import ProjectMemoryStore
 from .sanitizer import Sanitizer
 
 
@@ -23,22 +24,9 @@ AUDIT_PATH = ROOT / "data" / "audit.jsonl"
 
 
 class ShieldAIGateway:
-    def _retrieve(self, tool_name: str, arguments: dict[str, Any]) -> tuple[str, str]:
-        if tool_name == "shieldai_search_slack_messages":
-            channel = str(arguments.get("channel", "engineering"))
-            messages = search_slack_messages(str(arguments.get("query", "")), channel)
-            lines = [f"#{item['channel']} | {item['author']}: {item['text']}" for item in messages]
-            return "slack", "\n".join(lines) or "No matching Slack messages were found."
-        if tool_name == "shieldai_get_channel_history":
-            channel = str(arguments.get("channel", "engineering"))
-            messages = get_channel_history(channel)
-            lines = [f"#{item['channel']} | {item['author']}: {item['text']}" for item in messages]
-            return "slack", "\n".join(lines) or "No messages were found in this channel."
-        if tool_name == "shieldai_search_documents":
-            documents = search_documents(str(arguments.get("query", "")))
-            lines = [f"{item['title']}: {item['body']}" for item in documents]
-            return "drive", "\n".join(lines) or "No matching documents were found."
-        raise ValueError("Unknown ShieldAI MCP tool")
+    def __init__(self, proxy: ContextProxyEngine | None = None, memory: ProjectMemoryStore | None = None) -> None:
+        self.proxy = proxy or ContextProxyEngine()
+        self.memory = memory or ProjectMemoryStore()
 
     @staticmethod
     def _safe_llm_demo(safe_context: str) -> str:
@@ -66,6 +54,7 @@ class ShieldAIGateway:
         user = get_user(user_id)
         allowed, reason = authorize(user, tool_name, arguments)
         policy = get_policy(policy_id)
+        project_id = str(arguments.get("project_id", "demo-falcon"))
 
         base_event = {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -74,6 +63,7 @@ class ShieldAIGateway:
             "role": user.role,
             "tool": tool_name,
             "policy": policy["name"],
+            "project_id": project_id,
         }
 
         if not allowed:
@@ -81,12 +71,14 @@ class ShieldAIGateway:
             self._audit(event)
             return {"decision": "BLOCK", "reason": reason, "safe_context": "", "entities": [], "audit": event}
 
-        source, raw_context = self._retrieve(tool_name, arguments)
-        sanitizer = Sanitizer(policy)
+        source, upstream_tool, raw_context = self.proxy.retrieve(tool_name, arguments)
+        sanitizer = Sanitizer(policy, self.memory.load(project_id))
         safe_context = sanitizer.sanitize(raw_context)
+        self.memory.remember(project_id, sanitizer.mapping)
         event = {
             **base_event,
             "source": source,
+            "upstream_tool": upstream_tool,
             "decision": "REDACT" if sanitizer.entities else "ALLOW",
             "reason": reason,
             "entities_hidden": len(sanitizer.entities),
@@ -102,6 +94,7 @@ class ShieldAIGateway:
             response["raw_context"] = raw_context
             llm_response = self._safe_llm_demo(safe_context)
             response["mapping"] = sanitizer.mapping
+            response["project_memory_entries"] = self.memory.count(project_id)
             response["demo_llm_response"] = llm_response
             response["rehydrated_response"] = sanitizer.rehydrate(llm_response)
         return response

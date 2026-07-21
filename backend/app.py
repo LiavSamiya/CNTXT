@@ -74,7 +74,7 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
                     "connectors": [
                         {"name": "Slack", "status": "Protected", "tools": 2},
                         {"name": "Google Drive", "status": "Protected", "tools": 1},
-                        {"name": "GitHub", "status": "Policy ready", "tools": 0},
+                        {"name": "GitHub", "status": "Protected", "tools": 1},
                     ],
                     "logs": gateway.recent_audit_events(),
                 }

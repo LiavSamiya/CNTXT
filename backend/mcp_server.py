@@ -25,19 +25,24 @@ TOOLS = [
         "description": "Search Slack through ShieldAI policy enforcement. The result is always sanitized.",
         "inputSchema": {
             "type": "object",
-            "properties": {"query": {"type": "string"}, "channel": {"type": "string", "default": "engineering"}},
+            "properties": {"query": {"type": "string"}, "channel": {"type": "string", "default": "engineering"}, "project_id": {"type": "string", "default": "demo-falcon"}},
             "required": ["query"],
         },
     },
     {
         "name": "shieldai_get_channel_history",
         "description": "Read a permitted Slack channel through ShieldAI policy enforcement.",
-        "inputSchema": {"type": "object", "properties": {"channel": {"type": "string", "default": "engineering"}}},
+        "inputSchema": {"type": "object", "properties": {"channel": {"type": "string", "default": "engineering"}, "project_id": {"type": "string", "default": "demo-falcon"}}},
     },
     {
         "name": "shieldai_search_documents",
         "description": "Search Drive-like documents through ShieldAI policy enforcement.",
-        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "project_id": {"type": "string", "default": "demo-falcon"}}, "required": ["query"]},
+    },
+    {
+        "name": "shieldai_search_github",
+        "description": "Search GitHub through ShieldAI policy enforcement. The demo adapter returns no raw repository context.",
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "project_id": {"type": "string", "default": "demo-falcon"}}, "required": ["query"]},
     },
 ]
 
@@ -50,7 +55,7 @@ def _error(request_id: Any, code: int, message: str) -> dict:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
 
 
-def handle(message: dict, gateway: ShieldAIGateway) -> dict | None:
+def handle(message: dict, gateway: ShieldAIGateway, user_id: str | None = None) -> dict | None:
     method = message.get("method")
     request_id = message.get("id")
     if method == "notifications/initialized":
@@ -63,9 +68,9 @@ def handle(message: dict, gateway: ShieldAIGateway) -> dict | None:
         params = message.get("params", {})
         tool_name = params.get("name", "")
         arguments = params.get("arguments", {})
-        user_id = os.getenv("SHIELDAI_DEMO_USER", "john")
+        authenticated_user = user_id or os.getenv("SHIELDAI_DEMO_USER", "john")
         try:
-            response = gateway.execute(user_id, tool_name, arguments, include_mapping=False)
+            response = gateway.execute(authenticated_user, tool_name, arguments, include_mapping=False)
         except (PermissionError, ValueError) as exc:
             return _error(request_id, -32001, str(exc))
         if response["decision"] == "BLOCK":

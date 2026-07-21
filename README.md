@@ -20,18 +20,23 @@ data, and preserves useful context with deterministic placeholders.
 ## Architecture
 
 ```text
-AI client / Codex
-      |  MCP tools
+ChatGPT / Codex / Claude Desktop
+      |  localhost MCP client
       v
-ShieldAI MCP server
+ShieldAI Desktop (Electron)
       |
-      +-- identity + authorization
-      +-- policy decision
-      +-- mock connector adapter
-      +-- local sanitizer + placeholder map
-      +-- minimal audit event
+Local MCP server: http://127.0.0.1:8765/mcp
+      |
+Context Proxy Engine
+      +-- Slack MCP adapter
+      +-- GitHub MCP adapter
+      +-- Drive MCP adapter
+      |
+Policy enforcement + deterministic placeholder engine
+      |
+Project Memory Store (local SQLite)
       v
-safe text only -> external model
+safe text only -> AI client / external model
 ```
 
 The web dashboard is intentionally a local demonstration surface. It shows the
@@ -56,13 +61,26 @@ If Python is not on your PATH, use the bundled Codex runtime:
 
 Open `http://127.0.0.1:8787`.
 
-## Run the MCP server
+## Run the local MCP HTTP endpoint
+
+The Desktop architecture exposes a local JSON-RPC MCP endpoint at port 8765:
+
+```powershell
+cd shieldai
+python backend/mcp_http.py
+```
+
+Health check: `http://127.0.0.1:8765/health`  
+MCP endpoint: `http://127.0.0.1:8765/mcp`
+
+## Run the stdio MCP server
 
 The MCP server uses JSON-RPC over stdio and exposes:
 
 - `shieldai_search_slack_messages`
 - `shieldai_get_channel_history`
 - `shieldai_search_documents`
+- `shieldai_search_github`
 
 ```powershell
 cd shieldai
@@ -73,6 +91,18 @@ An MCP client configuration can invoke `backend/mcp_server.py`. In this MVP,
 the authenticated identity is simulated through `SHIELDAI_DEMO_USER` (default:
 `john`). A production deployment would derive it from SSO/OAuth claims and
 preserve the source system's per-user authorization.
+
+## Run ShieldAI Desktop
+
+The optional Electron shell starts both local services and opens the dashboard:
+
+```powershell
+cd shieldai\desktop
+npm install
+npm start
+```
+
+See `desktop/README.md` for the Windows Python setting.
 
 ## Demo scenario
 
@@ -100,19 +130,25 @@ blocked authorization decision.
   sanitize text that a user types directly into a third-party chat interface.
 - Response rehydration is only safe in a ShieldAI-controlled user interface;
   never send the placeholder map back through MCP to the model.
+- The localhost HTTP endpoint works only with MCP clients that can connect to
+  local servers. Cloud-only clients cannot reach `127.0.0.1`; use the stdio
+  transport or a secured remote deployment for those clients.
 
 ## Project layout
 
 ```text
 backend/
   authorization.py   Demo identities and source permissions
-  connectors.py      Mock Slack and Drive connector adapters
+  connectors.py      Fake enterprise datasets used by mock adapters
+  context_proxy.py   Routes protected calls to upstream MCP adapters
   gateway.py         Policy enforcement orchestration
+  project_memory.py  Local SQLite placeholder continuity per project
   sanitizer.py       Local detection and deterministic placeholders
   mcp_server.py      MCP stdio server
+  mcp_http.py        Localhost MCP HTTP server on port 8765
   app.py             Local dashboard/API server
 frontend/            Dependency-free dashboard
+desktop/             Optional Electron local desktop shell
 data/                Runtime audit log directory
 tests/               Unit and integration tests
 ```
-

@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
-from typing import Iterable
+from typing import Iterable, Sequence
+
+from .project_memory import MemoryEntry
 
 
 @dataclass(frozen=True)
@@ -65,26 +67,41 @@ def _luhn_valid(value: str) -> bool:
 class Sanitizer:
     """Produce stable, typed replacements for a single gateway request."""
 
-    def __init__(self, policy: dict):
+    def __init__(self, policy: dict, remembered_mappings: Sequence[MemoryEntry] = ()):
         self.policy = policy
         self._by_value: dict[tuple[str, str], str] = {}
+        self._original_by_placeholder: dict[str, str] = {}
         self._reverse_map: dict[str, str] = {}
         self._counters: dict[str, int] = {}
         self._entities: list[DetectedEntity] = []
+        self._seen_entity_placeholders: set[str] = set()
+        for entry in remembered_mappings:
+            self._by_value[(entry.entity_type, entry.canonical_value)] = entry.placeholder
+            self._original_by_placeholder[entry.placeholder] = entry.original_value
+            number_match = re.search(r"_(\d+)\]$", entry.placeholder)
+            if number_match:
+                self._counters[entry.entity_type] = max(self._counters.get(entry.entity_type, 0), int(number_match.group(1)))
 
     def _placeholder(self, entity_type: str, value: str, detector: str) -> str:
         key = (entity_type, _canonical(value))
         existing = self._by_value.get(key)
         if existing:
+            original_value = self._original_by_placeholder.get(existing, value)
+            self._reverse_map[existing] = original_value
+            if existing not in self._seen_entity_placeholders:
+                self._entities.append(DetectedEntity(entity_type=entity_type, value=original_value, placeholder=existing, detector=detector))
+                self._seen_entity_placeholders.add(existing)
             return existing
         next_index = self._counters.get(entity_type, 0) + 1
         self._counters[entity_type] = next_index
         placeholder = f"[{entity_type}_{next_index}]"
         self._by_value[key] = placeholder
+        self._original_by_placeholder[placeholder] = value
         self._reverse_map[placeholder] = value
         self._entities.append(
             DetectedEntity(entity_type=entity_type, value=value, placeholder=placeholder, detector=detector)
         )
+        self._seen_entity_placeholders.add(placeholder)
         return placeholder
 
     def _dictionary_matches(self, text: str) -> Iterable[_Match]:

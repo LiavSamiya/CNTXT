@@ -1,0 +1,13 @@
+{
+  "name": "shieldai-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ShieldAI Desktop runs the local dashboard and MCP security layer.",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^35.0.0"
+  }
+}
