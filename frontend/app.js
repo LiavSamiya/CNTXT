@@ -15,6 +15,40 @@ async function loadPolicy() {
   renderDictionary();
 }
 
+async function loadConnectors() {
+  const res = await fetch('/api/connectors');
+  const connectors = await res.json();
+  const list = $('connectorList');
+  list.innerHTML = connectors.map(connector => {
+    const active = connector.status === 'Connected';
+    return `<div class="connector">
+      <span class="conn-dot ${active ? 'on' : ''}"></span>
+      <span>${esc(connector.name)}</span>
+      <span class="conn-tools">${esc(connector.status)} · ${connector.tools} tool${connector.tools === 1 ? '' : 's'}</span>
+    </div>`;
+  }).join('');
+  const drive = connectors.find(connector => connector.name === 'Google Drive');
+  if (drive?.detail) $('driveConnectHint').textContent = drive.detail;
+}
+
+async function connectGoogleDrive() {
+  const button = $('connectDriveBtn');
+  button.disabled = true;
+  button.textContent = 'Opening Google sign-in…';
+  try {
+    const res = await fetch('/api/connectors/google-drive/authorize', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not connect Google Drive');
+    $('driveConnectHint').textContent = 'Google Drive connected with read-only access.';
+    await loadConnectors();
+  } catch (err) {
+    $('driveConnectHint').textContent = err.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Connect Google Drive';
+  }
+}
+
 // ── Categories (checkboxes) ─────────────────────────────────────────────
 function renderCategories() {
   const grid = $('categoriesGrid');
@@ -182,6 +216,7 @@ async function runProtect() {
 // ── Event Listeners ─────────────────────────────────────────────────────
 $('runBtn').addEventListener('click', runProtect);
 $('addTermBtn').addEventListener('click', addTerm);
+$('connectDriveBtn').addEventListener('click', connectGoogleDrive);
 $('newTermInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') addTerm();
 });
@@ -193,6 +228,14 @@ $('sourceSelect').addEventListener('change', () => {
 });
 
 // ── Init ────────────────────────────────────────────────────────────────
-loadPolicy().catch(err => {
-  console.error('Failed to load policy:', err);
+async function initializeDashboard() {
+  await loadPolicy();
+  await loadConnectors();
+  // A presentation should immediately demonstrate the protected-data flow.
+  // The user can still change the source, query, or policy and run it again.
+  await runProtect();
+}
+
+initializeDashboard().catch(err => {
+  console.error('Failed to load ShieldAI dashboard:', err);
 });

@@ -18,6 +18,7 @@ from .connectors import (
     search_github,
     format_github_results,
 )
+from .google_drive import GoogleDriveConnector
 
 
 class UpstreamMCPConnector(Protocol):
@@ -48,9 +49,14 @@ class SlackMCPAdapter:
 class DriveMCPAdapter:
     name: str = "Google Drive MCP"
 
+    def __post_init__(self) -> None:
+        self.google_drive = GoogleDriveConnector()
+
     def call(self, tool_name: str, arguments: dict[str, Any]) -> str:
         if tool_name != "search_documents":
             raise ValueError(f"Unknown Drive tool: {tool_name}")
+        if self.google_drive.status()["connected"]:
+            return self.google_drive.search_documents(str(arguments.get("query", "")))
         documents = search_documents(str(arguments.get("query", "")))
         return "\n".join(
             f"{doc['title']}: {doc['body']}" for doc in documents
@@ -94,3 +100,18 @@ class ContextProxyEngine:
             raise ValueError("Unknown ShieldAI tool") from exc
         connector = self.connectors[connector_id]
         return connector_id, upstream_tool, connector.call(upstream_tool, arguments)
+
+    def connector_status(self) -> list[dict[str, Any]]:
+        drive = self.connectors["drive"]
+        assert isinstance(drive, DriveMCPAdapter)
+        drive_status = drive.google_drive.status()
+        return [
+            {"name": "Slack", "status": "Demo data", "tools": 2},
+            {"name": "Google Drive", "status": drive_status["status"], "detail": drive_status["detail"], "tools": 1},
+            {"name": "GitHub", "status": "Demo data", "tools": 1},
+        ]
+
+    def authorize_google_drive(self) -> dict[str, str | bool]:
+        drive = self.connectors["drive"]
+        assert isinstance(drive, DriveMCPAdapter)
+        return drive.google_drive.authorize()

@@ -69,11 +69,7 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
             self._json(public_policy(load_policy()))
             return
         if path == "/api/connectors":
-            self._json([
-                {"name": "Slack", "status": "Connected", "tools": 2},
-                {"name": "Google Drive", "status": "Connected", "tools": 1},
-                {"name": "GitHub", "status": "Connected", "tools": 1},
-            ])
+            self._json(gateway.proxy.connector_status())
             return
         if path == "/api/logs":
             self._json(gateway.recent_audit_events())
@@ -114,6 +110,15 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
                 )
                 self._json(response)
             except (ValueError, json.JSONDecodeError) as exc:
+                self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            return
+
+        if path == "/api/connectors/google-drive/authorize":
+            try:
+                # This opens Google's consent page locally. The user must
+                # explicitly choose the account and approve read-only access.
+                self._json(gateway.proxy.authorize_google_drive())
+            except (RuntimeError, ValueError) as exc:
                 self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
             return
 
