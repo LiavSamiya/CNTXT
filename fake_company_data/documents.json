@@ -2,11 +2,21 @@
   {
     "id": "eng-falcon-status",
     "title": "Project Falcon weekly engineering status",
-    "body": "Project Falcon remains in integration testing. John Smith is coordinating the Aegis-9 validation at North Ridge Test Facility. The program budget is $15,000,000."
+    "body": "Project Falcon remains in integration testing. John Smith is coordinating the Aegis-9 validation at North Ridge Test Facility. The program budget is $15,000,000. Current sprint focuses on the Orion Database migration and performance benchmarks on eagle-prod-03."
+  },
+  {
+    "id": "eng-infrastructure",
+    "title": "Infrastructure access and credentials policy",
+    "body": "Staging cluster at 10.42.8.101 is available for integration tests. Production API key sk-prod-7GtQvU3rL5JmN8pK must be stored in Vault, never in code. Contact Ava Robinson for elevated access to the North Ridge Test Facility network."
   },
   {
     "id": "finance-q3",
     "title": "Helix Capital Q3 reconciliation",
-    "body": "Helix Capital requested confirmation for account 4111-2900-7788. Payment reference is 4532 0151 1283 0366."
+    "body": "Helix Capital requested confirmation for account 4111-2900-7788. Payment reference is 4532 0151 1283 0366. Total Q3 billing: $4,200,000. Point of contact: Maya Chen (maya.chen@acmedefense.com)."
+  },
+  {
+    "id": "customer-alpha",
+    "title": "Customer Alpha contract renewal",
+    "body": "Customer Alpha signed a 12-month renewal for $850,000. Primary contact: Sarah Miller (sarah.miller@alphacorp.com, +1-555-0142). Deliverables include Aegis-9 monitoring dashboard and quarterly security reviews."
   }
 ]

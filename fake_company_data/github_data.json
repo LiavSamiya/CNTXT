@@ -1,0 +1,37 @@
+[
+  {
+    "repo": "falcon-core",
+    "type": "pull_request",
+    "number": 287,
+    "title": "Fix Orion Database connection pool timeout",
+    "author": "John Smith",
+    "body": "The connection pool was exhausting under concurrent Aegis-9 telemetry ingestion. Increased pool size from 10 to 50 and added connection recycling.\n\nTested on staging (10.42.8.101). Latency dropped from 1200ms to 85ms.\n\nRelated to incident INC-2048 reported by Ava Robinson.",
+    "status": "merged"
+  },
+  {
+    "repo": "falcon-core",
+    "type": "issue",
+    "number": 312,
+    "title": "Aegis-9 telemetry validation failures at North Ridge",
+    "author": "Rina Patel",
+    "body": "Since the deployment on 2026-07-18, Aegis-9 telemetry packets from North Ridge Test Facility are intermittently failing checksum validation.\n\nEnvironment:\n- Server: eagle-prod-03 (10.42.8.200)\n- API Key: sk-staging-Kx9mP4wT2nR7vLqY\n- Database: Orion Database v3.2\n\nSuspected root cause: network MTU mismatch at the facility.",
+    "status": "open"
+  },
+  {
+    "repo": "falcon-core",
+    "type": "commit",
+    "sha": "4a8f2e1",
+    "author": "John Smith",
+    "message": "fix: increase Orion DB pool size for Aegis-9 load\n\nThe Project Falcon integration tests were timing out because\nthe connection pool was sized for dev (10 connections) but\nproduction Aegis-9 ingestion needs at least 50.\n\nAlso rotated the staging API key as requested by Acme Defense\ninfosec team.",
+    "files_changed": ["src/db/pool.py", "config/staging.yaml", ".env.staging"]
+  },
+  {
+    "repo": "falcon-infra",
+    "type": "pull_request",
+    "number": 45,
+    "title": "Add North Ridge VPN tunnel configuration",
+    "author": "Daniel Reeves",
+    "body": "Configures WireGuard tunnel to North Ridge Test Facility (endpoint 203.45.67.89:51820).\n\nThis is required for the $2,500,000 infrastructure milestone delivery.\n\nCredentials stored in Vault under secret/falcon/north-ridge.\nContact Ava Robinson for approval.",
+    "status": "open"
+  }
+]

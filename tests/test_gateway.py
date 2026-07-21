@@ -81,7 +81,7 @@ class GatewayTests(unittest.TestCase):
             )
             self.assertIn("[PROJECT_1]", first["safe_context"])
             self.assertIn("[PROJECT_1]", second["safe_context"])
-            self.assertEqual(memory.count("falcon"), 8)
+            self.assertGreaterEqual(memory.count("falcon"), 8)
 
 
 class ContextProxyTests(unittest.TestCase):

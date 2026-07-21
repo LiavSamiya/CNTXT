@@ -7,20 +7,56 @@
   },
   {
     "channel": "engineering",
+    "author": "John Smith",
+    "timestamp": "2026-07-21T09:15:00Z",
+    "text": "I pushed a fix to falcon-core repo (commit 4a8f2e1). The Orion Database connection pool was timing out under load. @Rina Patel can you review?"
+  },
+  {
+    "channel": "engineering",
     "author": "Rina Patel",
     "timestamp": "2026-07-21T09:24:00Z",
     "text": "Acme Defense approved an additional $15,000,000 for Project Falcon. Please keep the Orion Database migration restricted to the program team."
   },
   {
-    "channel": "finance",
-    "author": "Maya Chen",
-    "timestamp": "2026-07-21T08:48:00Z",
-    "text": "Helix Capital asked for a reconciliation of account 4111-2900-7788 and invoice INV-2048."
+    "channel": "engineering",
+    "author": "Rina Patel",
+    "timestamp": "2026-07-21T09:41:00Z",
+    "text": "Reviewed the PR. Looks good but I noticed the staging endpoint at 10.42.8.101 is still pointing to the old Aegis-9 instance. We need to switch before Thursday."
+  },
+  {
+    "channel": "engineering",
+    "author": "Daniel Reeves",
+    "timestamp": "2026-07-21T10:05:00Z",
+    "text": "CI pipeline for falcon-core is green after the fix. Build artifact deployed to the North Ridge Test Facility staging cluster. API key sk-staging-Kx9mP4wT2nR7vLqY was rotated as planned."
+  },
+  {
+    "channel": "engineering",
+    "author": "John Smith",
+    "timestamp": "2026-07-21T10:22:00Z",
+    "text": "Meeting with Lockheed rescheduled to Thursday 2pm. They want a status update on the Aegis-9 integration and the $2,500,000 infrastructure milestone."
   },
   {
     "channel": "operations",
     "author": "Ava Robinson",
     "timestamp": "2026-07-21T10:01:00Z",
-    "text": "Vendor access token sk-prod-7GtQvU3rL5JmN8pK should be rotated before tomorrow's deployment."
+    "text": "Vendor access token sk-prod-7GtQvU3rL5JmN8pK should be rotated before tomorrow's deployment. Daniel please coordinate with the Acme Defense infosec team."
+  },
+  {
+    "channel": "operations",
+    "author": "Ava Robinson",
+    "timestamp": "2026-07-21T10:35:00Z",
+    "text": "Server eagle-prod-03 (10.42.8.200) is showing high memory usage. Might be related to the Orion Database connection leak John mentioned. Monitoring for now."
+  },
+  {
+    "channel": "finance",
+    "author": "Maya Chen",
+    "timestamp": "2026-07-21T08:48:00Z",
+    "text": "Helix Capital asked for a reconciliation of account 4111-2900-7788 and invoice INV-2048. Budget allocation for Project Falcon Q3 is $4,200,000."
+  },
+  {
+    "channel": "finance",
+    "author": "Maya Chen",
+    "timestamp": "2026-07-21T09:10:00Z",
+    "text": "Customer Alpha renewed their contract for $850,000. Contact Sarah Miller (sarah.miller@alphacorp.com, +1-555-0142) for the signed documents."
   }
 ]
