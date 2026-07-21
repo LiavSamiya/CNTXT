@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,7 +36,11 @@ class ProjectMemoryStore:
         return sqlite3.connect(self.database_path)
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        # `sqlite3.Connection` commits/rolls back when used as a context
+        # manager, but it does not close the Windows file handle. Explicit
+        # closing prevents a stale handle from blocking container shutdown or
+        # a subsequent local service.
+        with closing(self._connect()) as connection:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS placeholder_memory (
@@ -49,13 +54,14 @@ class ProjectMemoryStore:
                 )
                 """
             )
+            connection.commit()
 
     @staticmethod
     def _canonical(value: str) -> str:
         return " ".join(value.casefold().split())
 
     def load(self, project_id: str) -> list[MemoryEntry]:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             rows = connection.execute(
                 "SELECT entity_type, canonical_value, original_value, placeholder "
                 "FROM placeholder_memory WHERE project_id = ? ORDER BY placeholder",
@@ -74,16 +80,16 @@ class ProjectMemoryStore:
             entries.append((project_id, entity_type, self._canonical(original_value), original_value, placeholder))
         if not entries:
             return
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.executemany(
                 "INSERT OR IGNORE INTO placeholder_memory "
                 "(project_id, entity_type, canonical_value, original_value, placeholder) VALUES (?, ?, ?, ?, ?)",
                 entries,
             )
+            connection.commit()
 
     def count(self, project_id: str) -> int:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             return int(
                 connection.execute("SELECT COUNT(*) FROM placeholder_memory WHERE project_id = ?", (project_id,)).fetchone()[0]
             )
-

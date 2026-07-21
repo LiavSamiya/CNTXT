@@ -1,11 +1,58 @@
+# `name` gives this stack its own Compose project namespace.  It therefore
+# never shares service names, network, or persisted data with VooDo.
+name: shieldai
+
 services:
-  shieldai:
-    build: .
+  dashboard:
+    build:
+      context: .
+    image: shieldai/local:dev
+    container_name: shieldai-dashboard
+    command: ["python", "backend/app.py"]
+    environment:
+      SHIELDAI_BIND_HOST: 0.0.0.0
     ports:
-      - "8787:8787"
+      # Bind only to the host loopback interface: this is a local desktop
+      # gateway, not a service exposed to the office network.
+      - "127.0.0.1:18787:8787"
     volumes:
-      - shieldai-audit:/app/data
+      - shieldai-data:/app/data
+    networks:
+      - shieldai-net
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/bootstrap')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mcp:
+    image: shieldai/local:dev
+    container_name: shieldai-mcp
+    command: ["python", "backend/mcp_http.py"]
+    environment:
+      SHIELDAI_BIND_HOST: 0.0.0.0
+      SHIELDAI_DASHBOARD_ORIGIN: http://127.0.0.1:18787
+    ports:
+      - "127.0.0.1:18765:8765"
+    volumes:
+      - shieldai-data:/app/data
+    networks:
+      - shieldai-net
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  shieldai-net:
+    name: shieldai_net
+    driver: bridge
 
 volumes:
-  shieldai-audit:
-
+  shieldai-data:
+    name: shieldai_data

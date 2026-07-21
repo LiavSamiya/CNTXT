@@ -9,6 +9,7 @@ production desktop build replaces it with SSO-issued claims.
 from __future__ import annotations
 
 import json
+import os
 import secrets
 import sys
 from http import HTTPStatus
@@ -37,7 +38,7 @@ class MCPHTTPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.send_header("Cache-Control", "no-store")
-        self.send_header("Access-Control-Allow-Origin", "http://127.0.0.1:8787")
+        self.send_header("Access-Control-Allow-Origin", os.getenv("SHIELDAI_DASHBOARD_ORIGIN", "http://127.0.0.1:8787"))
         if session_id:
             self.send_header("Mcp-Session-Id", session_id)
         self.end_headers()
@@ -45,7 +46,7 @@ class MCPHTTPHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(HTTPStatus.NO_CONTENT)
-        self.send_header("Access-Control-Allow-Origin", "http://127.0.0.1:8787")
+        self.send_header("Access-Control-Allow-Origin", os.getenv("SHIELDAI_DASHBOARD_ORIGIN", "http://127.0.0.1:8787"))
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, X-ShieldAI-User")
         self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
         self.end_headers()
@@ -78,8 +79,9 @@ class MCPHTTPHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), MCPHTTPHandler)
-    print("ShieldAI local MCP transport running at http://127.0.0.1:8765/mcp")
+    host = os.getenv("SHIELDAI_BIND_HOST", "127.0.0.1")
+    server = ThreadingHTTPServer((host, 8765), MCPHTTPHandler)
+    print(f"ShieldAI local MCP transport running at http://{host}:8765/mcp")
     server.serve_forever()
 
 

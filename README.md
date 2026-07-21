@@ -73,6 +73,29 @@ python backend/mcp_http.py
 Health check: `http://127.0.0.1:8765/health`  
 MCP endpoint: `http://127.0.0.1:8765/mcp`
 
+## Run with Docker (isolated from VooDo)
+
+ShieldAI now has its own Docker Compose project, bridge network
+(`shieldai_net`), containers (`shieldai-dashboard`, `shieldai-mcp`) and
+persisted local data volume (`shieldai_data`). It does not reuse any VooDo
+container, network, port, or volume.
+
+```powershell
+cd shieldai
+docker compose up --build -d
+docker compose ps
+```
+
+Open the local dashboard at `http://127.0.0.1:18787` and configure an MCP
+client to call `http://127.0.0.1:18765/mcp`. Both host ports are bound to
+`127.0.0.1`, so other devices cannot access the raw-context gateway.
+
+To stop ShieldAI without touching VooDo:
+
+```powershell
+docker compose down
+```
+
 ## Run the stdio MCP server
 
 The MCP server uses JSON-RPC over stdio and exposes:

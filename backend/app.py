@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import os
 import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -108,7 +109,10 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    address = ("127.0.0.1", 8787)
+    # Desktop mode remains loopback-only. Docker opts in to 0.0.0.0 inside
+    # its private network, while Compose still publishes the port only to the
+    # host loopback interface.
+    address = (os.getenv("SHIELDAI_BIND_HOST", "127.0.0.1"), 8787)
     print(f"ShieldAI dashboard running at http://{address[0]}:{address[1]}")
     ThreadingHTTPServer(address, ShieldAIHandler).serve_forever()
 
