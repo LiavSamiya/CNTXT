@@ -3,64 +3,98 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080b12" />
+    <meta name="description" content="CNTXT is the AI Context Firewall for MCP." />
+    <title>CNTXT | AI Context Firewall</title>
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="ShieldAI — AI Context Firewall. Protect sensitive enterprise data before it reaches the LLM." />
     <title>ShieldAI | AI Context Firewall</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="app">
-      <!-- ─── Header ─────────────────────────────────────── -->
-      <header class="header">
-        <div class="brand">
-          <div class="shield-mark">
-            <svg width="18" height="20" viewBox="0 0 18 20" fill="none"><path d="M9 0L0 3.5V9C0 14.25 3.84 19.18 9 20C14.16 19.18 18 14.25 18 9V3.5L9 0Z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="2" y1="2" x2="16" y2="18"><stop stop-color="#48e2bb"/><stop offset="1" stop-color="#1a8a6e"/></linearGradient></defs></svg>
-          </div>
-          <span class="brand-text">Shield<span class="accent">AI</span></span>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <div><strong>CNTXT</strong><small>AI CONTEXT FIREWALL</small></div>
         </div>
-        <p class="subtitle">AI Context Firewall</p>
-        <div class="header-status">
-          <span class="status-badge"><span class="pulse"></span> MCP Server Active</span>
-          <span class="status-badge muted">localhost:8765</span>
+
+        <nav class="nav" aria-label="Product navigation">
+          <button class="nav-item active" data-view="overview"><span class="nav-icon">01</span>Overview</button>
+          <button class="nav-item" data-view="connections"><span class="nav-icon">02</span>MCP connections</button>
+          <button class="nav-item" data-view="firewall"><span class="nav-icon">03</span>Live firewall</button>
+          <button class="nav-item" data-view="memory"><span class="nav-icon">04</span>Project memory</button>
+          <button class="nav-item" data-view="policies"><span class="nav-icon">05</span>Policies</button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="local-status"><span class="live-dot"></span><span>LOCAL GATEWAY</span></div>
+          <code>127.0.0.1:8765</code>
         </div>
-      </header>
+      </aside>
 
-      <!-- ─── Main Layout ────────────────────────────────── -->
-      <div class="main-grid">
+      <main class="workspace">
+        <header class="topbar">
+          <button class="mobile-brand" id="mobileMenu" aria-label="Open navigation">CNTXT</button>
+          <div class="breadcrumb"><span id="pageEyebrow">CONTROL PLANE</span><strong id="pageTitle">Overview</strong></div>
+          <div class="topbar-actions">
+            <span class="proxy-chip"><span class="live-dot"></span>MCP proxy running</span>
+            <button class="demo-button" id="runDemo">Run CNTXT demo <span>→</span></button>
+          </div>
+        </header>
 
-        <!-- ─── Left: Policy Config ──────────────────────── -->
-        <aside class="policy-panel">
-          <div class="panel-card">
-            <div class="card-header">
-              <h2>🛡️ Company Policy</h2>
-              <span class="badge">Editable</span>
+        <section class="view active" id="overview" data-title="Overview" data-eyebrow="CONTROL PLANE">
+          <div class="overview-hero">
+            <div>
+              <p class="eyebrow">AI context firewall</p>
+              <h1>Control what AI models <em>see.</em></h1>
+              <p class="hero-copy">CNTXT sits between your AI clients and MCP tools, converting sensitive context into persistent, safe references before it crosses the model boundary.</p>
+              <div class="hero-actions">
+                <button class="primary-button" data-go="firewall">Inspect live context <span>→</span></button>
+                <button class="quiet-button" data-go="connections">View connections</button>
+              </div>
             </div>
-            <p class="card-desc">Define what the AI must <strong>never</strong> see. Toggle categories and add custom terms.</p>
-
-            <div class="section-label">Hide Categories</div>
-            <div class="categories" id="categoriesGrid"></div>
-
-            <div class="section-label">Custom Dictionary</div>
-            <p class="dict-hint">Terms ShieldAI will always detect and replace.</p>
-            <div class="dictionary" id="dictionaryList"></div>
-            <div class="dict-add">
-              <input type="text" id="newTermInput" placeholder="Add sensitive term…" />
-              <select id="newTermType">
-                <option value="PROJECT">Project</option>
-                <option value="PERSON">Person</option>
-                <option value="COMPANY">Company</option>
-                <option value="LOCATION">Location</option>
-                <option value="INTERNAL_SYSTEM">System</option>
-                <option value="DATABASE">Database</option>
-                <option value="CUSTOMER">Customer</option>
-              </select>
-              <button id="addTermBtn" class="btn-small">+ Add</button>
+            <div class="endpoint-card">
+              <div class="endpoint-top"><span class="live-dot"></span><span>PROXY STATUS</span><strong>Healthy</strong></div>
+              <p>Local MCP endpoint</p>
+              <code id="mcpEndpoint">http://127.0.0.1:8765/mcp</code>
+              <div class="endpoint-foot"><span>JSON-RPC</span><span>SAFE CONTEXT ONLY</span></div>
             </div>
           </div>
 
+          <div class="section-heading inline-heading"><div><p class="eyebrow">Network surface</p><h2>Connected MCP servers</h2></div><button class="text-button" data-go="connections">Manage connections →</button></div>
+          <div class="connection-summary" id="overviewConnections"></div>
+
+          <div class="overview-grid">
+            <article class="project-card">
+              <div class="card-kicker">CURRENT PROJECT</div>
+              <h3>Defense Demo</h3>
+              <p>Stable placeholders are retained locally so every model can reason across requests without receiving confidential values.</p>
+              <div class="memory-status"><span class="live-dot"></span><span>Persistent memory</span><strong id="memoryCount">Active</strong></div>
+            </article>
+            <article class="metrics-card">
+              <div class="card-kicker">PROTECTION STATISTICS</div>
+              <div class="metric-row"><div><span>Requests protected</span><strong id="protectedRequests">124</strong></div><span class="metric-trend">LIVE</span></div>
+              <div class="metric-row"><div><span>Sensitive entities transformed</span><strong id="transformedEntities">542</strong></div><span class="metric-trend">SAFE</span></div>
+              <div class="metric-row"><div><span>Active policies</span><strong id="activePolicies">3</strong></div><span class="metric-trend">ENFORCED</span></div>
+            </article>
+          </div>
+
+          <div class="section-heading"><div><p class="eyebrow">Audit signal</p><h2>Context protection activity</h2></div><span class="section-meta">NO RAW CONTENT RETAINED</span></div>
+          <div class="activity-table" id="activityTable"></div>
+        </section>
+
+        <section class="view" id="connections" data-title="MCP connections" data-eyebrow="CONTEXT ROUTING">
+          <div class="section-intro split-intro"><div><p class="eyebrow">MCP routing layer</p><h1>One controlled path between agents and company context.</h1></div><p>CNTXT exposes protected MCP tools to AI clients, while connectors remain behind the gateway. The model receives only transformed context.</p></div>
+          <div class="architecture-card">
+            <div class="arch-node client-node"><span class="node-label">AI CLIENT</span><strong>Codex / Claude / internal agent</strong><small>Requests tool context</small></div>
+            <div class="arch-arrow"><span>REQUEST</span><i></i></div>
+            <div class="arch-node proxy-node"><span class="node-label">CNTXT MCP PROXY</span><strong>Policy + mapping engine</strong><small>Transforms context locally</small></div>
+            <div class="arch-arrow"><span>SAFE LOOKUP</span><i></i></div>
+            <div class="connector-stack"><span class="node-label">MCP CONNECTORS</span><div class="connector-pills"><span>Slack</span><span>GitHub</span><span>Google Drive</span></div></div>
           <div class="panel-card connectors-card">
             <div class="card-header">
               <h2>🔌 Connected MCPs</h2>
@@ -71,115 +105,88 @@
             <button id="connectDriveBtn" class="connect-drive-btn" type="button">Connect Google Drive</button>
             <p id="driveConnectHint" class="dict-hint">Uses local OAuth and read-only Drive access.</p>
           </div>
-        </aside>
-
-        <!-- ─── Right: Demo Flow ─────────────────────────── -->
-        <section class="flow-panel">
-          <!-- Query Input -->
-          <div class="panel-card query-card">
-            <div class="card-header">
-              <h2>🔍 Retrieve & Protect</h2>
-            </div>
-            <div class="query-controls">
-              <div class="query-row">
-                <label for="sourceSelect">Source</label>
-                <select id="sourceSelect">
-                  <option value="shieldai_search_slack_messages">Slack — Search Messages</option>
-                  <option value="shieldai_get_channel_history">Slack — Channel History</option>
-                  <option value="shieldai_search_documents">Google Drive — Search Documents</option>
-                  <option value="shieldai_search_github">GitHub — Search Repository</option>
-                </select>
-              </div>
-              <div class="query-row">
-                <label for="queryInput">Query</label>
-                <input type="text" id="queryInput" value="latest Falcon discussion" placeholder="Search query…" />
-              </div>
-              <button class="run-btn" id="runBtn">
-                <span class="run-icon">▶</span> Retrieve & Protect Context
-              </button>
-            </div>
-          </div>
-
-          <!-- Processing Steps -->
-          <div class="steps" id="stepsContainer">
-            <div class="step" data-step="1">
-              <div class="step-num">1</div>
-              <div class="step-body">
-                <strong>Retrieve Context</strong>
-                <small>Fetching from MCP connector…</small>
-              </div>
-              <span class="step-status"></span>
-            </div>
-            <div class="step" data-step="2">
-              <div class="step-num">2</div>
-              <div class="step-body">
-                <strong>Detect Entities</strong>
-                <small>Scanning with policy dictionary + regex…</small>
-              </div>
-              <span class="step-status"></span>
-            </div>
-            <div class="step" data-step="3">
-              <div class="step-num">3</div>
-              <div class="step-body">
-                <strong>Apply Placeholders</strong>
-                <small>Replacing with deterministic tokens…</small>
-              </div>
-              <span class="step-status"></span>
-            </div>
-            <div class="step" data-step="4">
-              <div class="step-num">4</div>
-              <div class="step-body">
-                <strong>Return Safe Context</strong>
-                <small>Only placeholders cross the AI boundary.</small>
-              </div>
-              <span class="step-status"></span>
-            </div>
-          </div>
-
-          <!-- Results -->
-          <div class="results-grid" id="resultsGrid">
-            <!-- Original -->
-            <div class="result-card" id="originalCard">
-              <div class="card-label"><span class="dot danger"></span> Original Context <span class="label-tag">NEVER SENT TO AI</span></div>
-              <pre id="originalOutput">Run a query to see raw connector data.</pre>
-            </div>
-            <!-- Sanitized -->
-            <div class="result-card highlight" id="safeCard">
-              <div class="card-label"><span class="dot safe"></span> Sanitized Context <span class="label-tag safe-tag">SENT TO AI</span></div>
-              <pre id="safeOutput">Protected context will appear here.</pre>
-            </div>
-            <!-- Mapping -->
-            <div class="result-card" id="mappingCard">
-              <div class="card-label"><span class="dot map"></span> Placeholder Map <span class="label-tag">LOCAL ONLY</span></div>
-              <div id="mappingOutput" class="mapping-list"><span class="empty">Mapping is created per request.</span></div>
-            </div>
-            <!-- GPT + Rehydrated -->
-            <div class="result-card" id="responseCard">
-              <div class="card-label"><span class="dot warn"></span> LLM Response → Rehydrated</div>
-              <div class="response-split">
-                <div>
-                  <div class="mini-label">GPT sees:</div>
-                  <pre id="llmOutput" class="llm-text">—</pre>
-                </div>
-                <div class="rehydrate-arrow">→</div>
-                <div>
-                  <div class="mini-label">User sees:</div>
-                  <pre id="rehydratedOutput" class="rehydrated-text">—</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stats -->
-          <div class="stats-bar" id="statsBar">
-            <span id="statEntities">—</span>
-            <span id="statLatency">—</span>
-            <span id="statMemory">—</span>
-          </div>
-
+          <div class="connection-detail-grid" id="connectionCards"></div>
         </section>
-      </div>
+
+        <section class="view" id="firewall" data-title="Live context firewall" data-eyebrow="LIVE INSPECTION">
+          <div class="section-intro compact"><div><p class="eyebrow">Live transformation</p><h1>Watch context change before the model sees it.</h1></div><p>Raw values stay inside the CNTXT boundary. The right-hand panel is the only payload an AI client can receive.</p></div>
+          <div class="firewall-controls">
+            <label>Source
+              <select id="sourceSelect">
+                <option value="shieldai_search_slack_messages">Slack MCP · search messages</option>
+                <option value="shieldai_search_github">GitHub MCP · search repository</option>
+                <option value="shieldai_search_documents">Google Drive MCP · search documents</option>
+                <option value="shieldai_get_channel_history">Slack MCP · channel history</option>
+              </select>
+            </label>
+            <label class="query-control">Request context
+              <input id="queryInput" value="latest Falcon discussion" placeholder="Describe the context the agent needs" />
+            </label>
+            <button class="primary-button firewall-run" id="firewallRun">Protect context <span>→</span></button>
+          </div>
+          <div class="firewall-stage">
+            <article class="context-panel raw-panel">
+              <div class="context-heading"><div><span class="status-square danger"></span><span>RAW MCP CONTEXT</span></div><small>LOCAL ONLY</small></div>
+              <pre id="rawOutput">John Smith updated Project Falcon.
+
+Budget: $15M
+Repository: falcon-core
+API key: sk-live-xxxx</pre>
+            </article>
+            <div class="processing-panel">
+              <div class="processing-title"><span class="processing-mark"></span><span>CNTXT PROCESSING</span></div>
+              <div class="pipeline-line"></div>
+              <div class="pipeline-stage" data-pipeline="1"><span class="stage-number">01</span><div><strong>Entity detection</strong><small>Dictionary + structured patterns</small></div><b>✓</b></div>
+              <div class="pipeline-stage" data-pipeline="2"><span class="stage-number">02</span><div><strong>Policy matching</strong><small>Defense policy applied locally</small></div><b>✓</b></div>
+              <div class="pipeline-stage" data-pipeline="3"><span class="stage-number">03</span><div><strong>Placeholder mapping</strong><small>Deterministic identifiers issued</small></div><b>✓</b></div>
+              <div class="pipeline-stage" data-pipeline="4"><span class="stage-number">04</span><div><strong>Memory lookup</strong><small>Project mappings retained</small></div><b>✓</b></div>
+              <div class="processing-boundary">MODEL BOUNDARY</div>
+            </div>
+            <article class="context-panel safe-panel">
+              <div class="context-heading"><div><span class="status-square safe"></span><span>SAFE AI CONTEXT</span></div><small>SENT TO AI</small></div>
+              <pre id="safeOutput">[PERSON_1] updated [PROJECT_1].
+
+Budget: [AMOUNT_1]
+Repository: [REPOSITORY_1]
+API key: [API_KEY_1]</pre>
+            </article>
+          </div>
+          <div class="firewall-result-bar"><span id="firewallResult">Ready to protect the next MCP response.</span><div><span id="entityCount">0 entities</span><span id="latencyCount">— ms</span><span id="projectMemoryCount">Memory active</span></div></div>
+          <div class="mapping-preview"><div><p class="eyebrow">Local mapping</p><h2>Deterministic placeholders</h2></div><div class="mapping-chips" id="liveMapping"><span class="mapping-chip"><code>PROJECT_1</code><i>Project Falcon</i></span><span class="mapping-chip"><code>PERSON_1</code><i>John Smith</i></span><span class="mapping-chip"><code>SECRET_1</code><i>API key</i></span></div></div>
+        </section>
+
+        <section class="view" id="memory" data-title="Project memory" data-eyebrow="PERSISTENT CONTEXT">
+          <div class="section-intro split-intro"><div><p class="eyebrow">Persistent context memory</p><h1>Continuity for reasoning. Privacy by design.</h1></div><p>CNTXT maintains deterministic mappings per MCP project so AI maintains reasoning without seeing original sensitive values.</p></div>
+          <div class="memory-layout">
+            <article class="memory-graph-card">
+              <div class="graph-top"><div><span class="card-kicker">PROJECT</span><h2>Defense Demo</h2></div><span class="local-only">LOCAL STORE</span></div>
+              <div class="knowledge-graph" id="knowledgeGraph">
+                <div class="graph-core">DEFENSE<br />DEMO</div>
+                <div class="graph-orbit orbit-a"></div><div class="graph-orbit orbit-b"></div>
+                <div class="graph-point point-project">PROJECT_1</div><div class="graph-point point-person">PERSON_1</div><div class="graph-point point-database">DATABASE_1</div><div class="graph-point point-secret">SECRET_1</div>
+              </div>
+              <p class="graph-note"><span class="live-dot"></span> Mappings remain on the local gateway and are never attached to MCP tool results.</p>
+            </article>
+            <article class="memory-list-card"><div class="memory-list-top"><div><span class="card-kicker">MAPPING EXPLORER</span><h2>Known secure references</h2></div><span id="memoryEntriesLabel">Active</span></div><div class="memory-list" id="memoryList"></div></article>
+          </div>
+        </section>
+
+        <section class="view" id="policies" data-title="Policies" data-eyebrow="PROTECTION CONFIGURATION">
+          <div class="section-intro split-intro"><div><p class="eyebrow">Policy configuration</p><h1>Define the context your models can safely use.</h1></div><p>Use an industry template to start, then tune the entity types CNTXT transforms for every MCP response.</p></div>
+          <div class="template-grid">
+            <button class="template-card active" data-template="defense"><span>01</span><strong>Defense</strong><small>Programs, personnel, facilities, budgets</small></button>
+            <button class="template-card" data-template="finance"><span>02</span><strong>Finance</strong><small>Accounts, customers, market-sensitive data</small></button>
+            <button class="template-card" data-template="software"><span>03</span><strong>Software engineering</strong><small>Secrets, repositories, systems</small></button>
+            <button class="template-card" data-template="healthcare"><span>04</span><strong>Healthcare</strong><small>Patient identity and regulated records</small></button>
+          </div>
+          <div class="policy-workspace">
+            <article class="policy-card"><div class="policy-card-top"><div><p class="eyebrow">Defense policy</p><h2>Protect these entity classes</h2></div><span class="enforced-badge">ENFORCED</span></div><div class="policy-toggles" id="policyToggles"></div></article>
+            <article class="custom-entities"><p class="eyebrow">Custom entities</p><h2>Add a sensitive term</h2><p>Custom terms receive the same deterministic placeholder treatment as built-in entity classes.</p><div class="term-form"><input id="newTermInput" placeholder="e.g. Falcon Database" /><select id="newTermType"><option value="PROJECT">Project</option><option value="PERSON">Personnel</option><option value="LOCATION">Location</option><option value="DATABASE">Database</option><option value="INTERNAL_SYSTEM">Internal system</option><option value="API_KEY">API key</option></select><button class="primary-button" id="addTerm">Add term</button></div><div class="custom-term-list" id="customTerms"></div></article>
+          </div>
+        </section>
+      </main>
     </div>
+    <div class="toast" id="toast" role="status"></div>
     <script src="/app.js"></script>
   </body>
 </html>

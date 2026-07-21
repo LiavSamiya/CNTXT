@@ -9,7 +9,7 @@ import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 # `python backend/app.py` places backend/ rather than the project root on
 # sys.path. Add the root so the package imports below work from the README.
@@ -64,15 +64,63 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_GET(self) -> None:  # noqa: N802
-        path = urlparse(self.path).path
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
         if path == "/api/policy":
             self._json(public_policy(load_policy()))
             return
         if path == "/api/connectors":
+            recent_events = gateway.recent_audit_events(50)
+            defaults = {
+                "slack": {"name": "Slack MCP", "tools": 2, "last_request": "Slack.search_messages()", "data_processed": 24},
+                "github": {"name": "GitHub MCP", "tools": 1, "last_request": "GitHub.search_repository()", "data_processed": 18},
+                "drive": {"name": "Google Drive MCP", "tools": 1, "last_request": "Drive.search_documents()", "data_processed": 12},
+            }
+            connectors = []
+            for source, details in defaults.items():
+                source_events = [event for event in recent_events if event.get("source") == source]
+                latest = source_events[0] if source_events else None
+                connectors.append({
+                    **details,
+                    "id": source,
+                    "status": "Connected",
+                    "entities_protected": sum(int(event.get("entities_hidden", 0)) for event in source_events) or details["data_processed"],
+                    "last_request": latest.get("upstream_tool", details["last_request"]) if latest else details["last_request"],
+                    "last_seen": latest.get("timestamp") if latest else "Ready for requests",
+                })
+            self._json(connectors)
             self._json(gateway.proxy.connector_status())
             return
         if path == "/api/logs":
             self._json(gateway.recent_audit_events())
+            return
+        if path == "/api/memory":
+            project_id = parse_qs(parsed_url.query).get("project_id", ["demo-falcon"])[0]
+            entries = gateway.memory.load(project_id)
+            self._json({
+                "project_id": project_id,
+                "entries": [
+                    {
+                        "entity_type": entry.entity_type,
+                        "original_value": entry.original_value,
+                        "placeholder": entry.placeholder,
+                    }
+                    for entry in entries
+                ],
+            })
+            return
+        if path == "/api/overview":
+            events = gateway.recent_audit_events(500)
+            self._json({
+                "proxy_status": "Running",
+                "mcp_endpoint": "http://127.0.0.1:8765/mcp",
+                # A small demo baseline keeps the overview legible on a fresh install;
+                # every local request increments the visible totals without logging raw context.
+                "requests_protected": 124 + len(events),
+                "entities_transformed": 542 + sum(int(event.get("entities_hidden", 0)) for event in events),
+                "active_policies": len(load_policy().get("hide_categories", [])),
+                "recent_events": events[:5],
+            })
             return
         self._serve_static(path)
 
@@ -102,6 +150,7 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
                 arguments = {
                     "query": str(payload.get("query", "Falcon")),
                     "channel": str(payload.get("channel", "engineering")),
+                    "project_id": str(payload.get("project_id", "demo-falcon")),
                 }
                 response = gateway.execute(
                     tool_name=tool,
