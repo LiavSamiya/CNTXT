@@ -1,0 +1,26 @@
+[
+  {
+    "channel": "engineering",
+    "author": "John Smith",
+    "timestamp": "2026-07-21T09:12:00Z",
+    "text": "Project Falcon validation is delayed at North Ridge Test Facility. Aegis-9 telemetry is inconsistent after the latest integration run."
+  },
+  {
+    "channel": "engineering",
+    "author": "Rina Patel",
+    "timestamp": "2026-07-21T09:24:00Z",
+    "text": "Acme Defense approved an additional $15,000,000 for Project Falcon. Please keep the Orion Database migration restricted to the program team."
+  },
+  {
+    "channel": "finance",
+    "author": "Maya Chen",
+    "timestamp": "2026-07-21T08:48:00Z",
+    "text": "Helix Capital asked for a reconciliation of account 4111-2900-7788 and invoice INV-2048."
+  },
+  {
+    "channel": "operations",
+    "author": "Ava Robinson",
+    "timestamp": "2026-07-21T10:01:00Z",
+    "text": "Vendor access token sk-prod-7GtQvU3rL5JmN8pK should be rotated before tomorrow's deployment."
+  }
+]

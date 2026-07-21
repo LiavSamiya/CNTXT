@@ -1,0 +1,11 @@
+services:
+  shieldai:
+    build: .
+    ports:
+      - "8787:8787"
+    volumes:
+      - shieldai-audit:/app/data
+
+volumes:
+  shieldai-audit:
+

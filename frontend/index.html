@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07131e" />
+    <title>ShieldAI | Enterprise AI Policy Gateway</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="shield-mark">S</span><span>Shield<span class="accent">AI</span></span></div>
+        <div class="workspace"><span class="status-dot"></span> ACME DEFENSE <span class="chevron">⌄</span></div>
+        <nav>
+          <a class="nav-item active" href="#dashboard"><span>▦</span> Gateway</a>
+          <a class="nav-item" href="#policies"><span>◈</span> Policies</a>
+          <a class="nav-item" href="#connectors"><span>⌘</span> Connectors</a>
+          <a class="nav-item" href="#audit"><span>◷</span> Audit trail</a>
+        </nav>
+        <div class="side-bottom"><div class="secure-chip"><span>●</span> Local enforcement active</div><p>MCP Security Layer<br />v0.1.0 · Demo mode</p></div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div><p class="eyebrow">SECURE AI OPERATIONS</p><h1>Policy Gateway</h1></div>
+          <div class="top-actions"><span class="health"><i></i> All systems protected</span><button class="avatar" aria-label="Current user">JC</button></div>
+        </header>
+
+        <section class="metrics" aria-label="Gateway overview">
+          <article><p>Protected requests</p><strong id="metricRequests">—</strong><small>Current demo session</small></article>
+          <article><p>Entities transformed</p><strong id="metricEntities">—</strong><small>Original values stay local</small></article>
+          <article><p>Policy decisions</p><strong id="metricPolicy">Defense</strong><small>Deterministic enforcement</small></article>
+          <article><p>Connected systems</p><strong id="metricConnectors">3</strong><small>2 tools actively protected</small></article>
+        </section>
+
+        <section class="demo-grid" id="dashboard">
+          <article class="panel request-panel">
+            <div class="panel-heading"><div><p class="eyebrow">MCP TOOL REQUEST</p><h2>Run protected connector access</h2></div><span class="mcp-badge">MCP</span></div>
+            <label for="userSelect">Identity</label>
+            <select id="userSelect"></select>
+            <div class="inline-label"><label for="policySelect">Security policy</label><span>Local · deterministic</span></div>
+            <select id="policySelect"></select>
+            <div class="inline-label"><label for="toolSelect">ShieldAI tool</label><span>Direct connector access disabled</span></div>
+            <select id="toolSelect">
+              <option value="shieldai_search_slack_messages">shieldai.search_slack_messages</option>
+              <option value="shieldai_get_channel_history">shieldai.get_channel_history</option>
+              <option value="shieldai_search_documents">shieldai.search_documents</option>
+            </select>
+            <label for="queryInput">Search query</label>
+            <textarea id="queryInput" rows="4">latest Falcon discussion</textarea>
+            <div class="callout"><span>✓</span><p>The model never receives the raw connector result or placeholder mapping.</p></div>
+            <button class="run-button" id="runButton"><span>▶</span> Run through ShieldAI Gateway</button>
+          </article>
+
+          <article class="panel flow-panel">
+            <div class="panel-heading"><div><p class="eyebrow">LIVE ENFORCEMENT FLOW</p><h2>Decision timeline</h2></div><span id="decisionPill" class="decision waiting">WAITING</span></div>
+            <ol class="timeline" id="timeline">
+              <li><span class="node">1</span><div><strong>Authenticate identity</strong><small>Select a demo employee to begin.</small></div></li>
+              <li><span class="node">2</span><div><strong>Authorize connector request</strong><small>Role, source, channel, and resource are checked.</small></div></li>
+              <li><span class="node">3</span><div><strong>Apply local policy</strong><small>Dictionary and checksum-aware detectors run locally.</small></div></li>
+              <li><span class="node">4</span><div><strong>Return safe MCP context</strong><small>Only placeholders may cross the AI boundary.</small></div></li>
+            </ol>
+            <div id="decisionReason" class="decision-reason">Ready for a protected request.</div>
+          </article>
+        </section>
+
+        <section class="results" id="resultsSection" aria-live="polite">
+          <div class="section-heading"><div><p class="eyebrow">INSPECTABLE SECURITY</p><h2>Transformation evidence</h2></div><span id="latency" class="latency">No request yet</span></div>
+          <div class="results-grid">
+            <article class="result-card original"><div class="card-label"><span class="dot raw"></span> CONNECTOR RESULT · LOCAL GATEWAY ONLY</div><pre id="originalOutput">Run a request to inspect the source inside ShieldAI. It is never sent through MCP.</pre></article>
+            <article class="result-card safe"><div class="card-label"><span class="dot safe-dot"></span> SAFE CONTEXT · SENT TO AI</div><pre id="safeOutput">Run a request to inspect the protected context.</pre></article>
+            <article class="result-card mapping"><div class="card-label"><span class="dot map-dot"></span> LOCAL PLACEHOLDER MAP</div><div id="mappingOutput" class="mapping-list"><span class="empty">Mapping is created per request and never sent through MCP.</span></div></article>
+            <article class="result-card response"><div class="card-label"><span class="dot response-dot"></span> RESPONSE REHYDRATION · LOCAL UI ONLY</div><p id="responseOutput">The optional display transformation happens only inside ShieldAI.</p></article>
+          </div>
+        </section>
+
+        <section class="audit-section" id="audit">
+          <div class="section-heading"><div><p class="eyebrow">MINIMAL AUDIT LOGGING</p><h2>Recent policy decisions</h2></div><button id="refreshLogs" class="text-button">Refresh</button></div>
+          <div class="audit-table-wrap"><table><thead><tr><th>Time</th><th>Identity</th><th>Tool</th><th>Policy decision</th><th>Entities</th><th>Latency</th></tr></thead><tbody id="logsBody"><tr><td colspan="6" class="empty-row">No events yet.</td></tr></tbody></table></div>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
