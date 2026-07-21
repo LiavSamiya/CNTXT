@@ -362,3 +362,79 @@ pre { margin: 0; color: #4d4d4d; font: 12px/1.6 ui-monospace, "Cascadia Code", C
   .rehydrate-arrow { display: none; }
   .stats-bar { flex-wrap: wrap; gap: 8px 14px; }
 }
+
+/* Final colour layer: the dashboard is intentionally dark by default.
+   These variables also neutralize legacy light-component rules that remain
+   in this stylesheet while the dashboard uses the newer CNTXT layout. */
+:root {
+  color-scheme: dark;
+  --bg: #080b12;
+  --canvas: #080b12;
+  --sidebar: #0b0f17;
+  --surface: #101621;
+  --surface-2: #141c29;
+  --surface-3: #1b2534;
+  --surface-raised: #161f2d;
+  --surface-soft: #101925;
+  --line: #2a384c;
+  --line-strong: #3a4c64;
+  --line-soft: #202c3d;
+  --text: #f4f7fb;
+  --muted: #aab7c8;
+  --subtle: #8291a5;
+  --quiet: #8291a5;
+  --cyan: #5bd7ff;
+  --cyan-soft: rgba(91, 215, 255, .14);
+  --accent: #55dca3;
+  --accent-dark: #63e2b0;
+  --accent-bg: rgba(85, 220, 163, .13);
+  --green: #55dca3;
+  --green-soft: rgba(85, 220, 163, .13);
+  --danger: #ff8494;
+  --danger-bg: rgba(255, 132, 148, .13);
+  --warning: #f6c866;
+  --warning-bg: rgba(246, 200, 102, .13);
+  --blue: #7aa7ff;
+  --shadow: 0 18px 48px rgba(0, 0, 0, .3);
+}
+
+html, body {
+  min-height: 100%;
+  background: radial-gradient(900px 600px at 75% -15%, #102d41 0%, transparent 55%), var(--canvas) !important;
+  color: var(--text) !important;
+}
+
+.workspace { background: transparent !important; }
+.topbar, .sidebar { border-color: var(--line-soft); }
+.endpoint-card, .mini-connection, .project-card, .metrics-card,
+.memory-graph-card, .memory-list-card, .policy-card, .custom-entities,
+.architecture-card, .connection-detail-card, .activity-table,
+.processing-panel, .context-panel, .mapping-preview {
+  color: var(--text);
+  border-color: var(--line-soft);
+}
+
+.mini-connection, .connection-detail-card, .activity-table,
+.processing-panel, .context-panel, .mapping-preview,
+.connector, .map-row, .result-card, .step, .stats-bar {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+.connector, .step-body strong, pre, #originalOutput, #safeOutput,
+.llm-text, .rehydrated-text, .map-row span:last-child {
+  color: var(--text) !important;
+}
+
+.mini-connection > span, .safe-status, .endpoint-top strong,
+.label-tag.safe-tag, .rehydrated-text { color: var(--green) !important; }
+
+input, select, textarea, button.connect-drive-btn {
+  color: var(--text) !important;
+  border-color: var(--line-strong) !important;
+  background: var(--surface-2) !important;
+}
+
+input::placeholder, textarea::placeholder { color: var(--subtle); }
+select option { background: var(--surface-2); color: var(--text); }
+.connect-drive-btn:hover { border-color: var(--cyan) !important; background: var(--cyan-soft) !important; }
