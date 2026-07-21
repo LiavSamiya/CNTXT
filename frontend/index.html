@@ -127,11 +127,7 @@
           <div class="firewall-stage">
             <article class="context-panel raw-panel">
               <div class="context-heading"><div><span class="status-square danger"></span><span>RAW MCP CONTEXT</span></div><small>LOCAL ONLY</small></div>
-              <pre id="rawOutput">John Smith updated Project Falcon.
-
-Budget: $15M
-Repository: falcon-core
-API key: sk-live-xxxx</pre>
+              <pre id="rawOutput">Run a protected connector request to inspect local context.</pre>
             </article>
             <div class="processing-panel">
               <div class="processing-title"><span class="processing-mark"></span><span>CNTXT PROCESSING</span></div>
@@ -144,15 +140,11 @@ API key: sk-live-xxxx</pre>
             </div>
             <article class="context-panel safe-panel">
               <div class="context-heading"><div><span class="status-square safe"></span><span>SAFE AI CONTEXT</span></div><small>SENT TO AI</small></div>
-              <pre id="safeOutput">[PERSON_1] updated [PROJECT_1].
-
-Budget: [AMOUNT_1]
-Repository: [REPOSITORY_1]
-API key: [API_KEY_1]</pre>
+              <pre id="safeOutput">Sanitized context will appear here. Only this panel can cross the model boundary.</pre>
             </article>
           </div>
           <div class="firewall-result-bar"><span id="firewallResult">Ready to protect the next MCP response.</span><div><span id="entityCount">0 entities</span><span id="latencyCount">— ms</span><span id="projectMemoryCount">Memory active</span></div></div>
-          <div class="mapping-preview"><div><p class="eyebrow">Local mapping</p><h2>Deterministic placeholders</h2></div><div class="mapping-chips" id="liveMapping"><span class="mapping-chip"><code>PROJECT_1</code><i>Project Falcon</i></span><span class="mapping-chip"><code>PERSON_1</code><i>John Smith</i></span><span class="mapping-chip"><code>SECRET_1</code><i>API key</i></span></div></div>
+          <div class="mapping-preview"><div><p class="eyebrow">Local mapping</p><h2>Deterministic placeholders</h2></div><div class="mapping-chips" id="liveMapping"><span class="empty-state">Run a protected request to create local mappings.</span></div></div>
         </section>
 
         <section class="view" id="memory" data-title="Project memory" data-eyebrow="PERSISTENT CONTEXT">

@@ -71,6 +71,11 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/connectors":
             recent_events = gateway.recent_audit_events(50)
+            proxy_status = dict(zip(
+                ("slack", "drive", "github"),
+                gateway.proxy.connector_status(),
+                strict=True,
+            ))
             defaults = {
                 "slack": {"name": "Slack MCP", "tools": 2, "last_request": "Slack.search_messages()", "data_processed": 24},
                 "github": {"name": "GitHub MCP", "tools": 1, "last_request": "GitHub.search_repository()", "data_processed": 18},
@@ -80,16 +85,18 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
             for source, details in defaults.items():
                 source_events = [event for event in recent_events if event.get("source") == source]
                 latest = source_events[0] if source_events else None
+                upstream = proxy_status[source]
                 connectors.append({
                     **details,
                     "id": source,
-                    "status": "Connected",
+                    "status": upstream["status"],
+                    "detail": upstream.get("detail", "Mock connector data for the local demo."),
+                    "connected": bool(upstream.get("connected", False)),
                     "entities_protected": sum(int(event.get("entities_hidden", 0)) for event in source_events) or details["data_processed"],
                     "last_request": latest.get("upstream_tool", details["last_request"]) if latest else details["last_request"],
                     "last_seen": latest.get("timestamp") if latest else "Ready for requests",
                 })
             self._json(connectors)
-            self._json(gateway.proxy.connector_status())
             return
         if path == "/api/logs":
             self._json(gateway.recent_audit_events())
@@ -114,10 +121,8 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
             self._json({
                 "proxy_status": "Running",
                 "mcp_endpoint": "http://127.0.0.1:8765/mcp",
-                # A small demo baseline keeps the overview legible on a fresh install;
-                # every local request increments the visible totals without logging raw context.
-                "requests_protected": 124 + len(events),
-                "entities_transformed": 542 + sum(int(event.get("entities_hidden", 0)) for event in events),
+                "requests_protected": len(events),
+                "entities_transformed": sum(int(event.get("entities_hidden", 0)) for event in events),
                 "active_policies": len(load_policy().get("hide_categories", [])),
                 "recent_events": events[:5],
             })

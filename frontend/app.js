@@ -15,12 +15,13 @@ const state = { policy: null, overview: null, connectors: [], memory: [], active
 
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 /* ═══════════════════════════════════════════════════════════════════════
    ShieldAI — AI Context Firewall — Frontend Logic
    ═══════════════════════════════════════════════════════════════════════ */
 
-const $ = (id) => document.getElementById(id);
-const esc = (v) => String(v).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const legacyById = (id) => document.getElementById(id);
+const legacyEsc = (v) => String(v).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
 
 let policy = null;
 
@@ -122,25 +123,23 @@ function renderOverview() {
 
 function renderOverviewConnections() {
   const target = $('#overviewConnections');
-  const connectors = state.connectors.length ? state.connectors : [
-    { name: 'Slack MCP', tools: 2 }, { name: 'GitHub MCP', tools: 1 }, { name: 'Google Drive MCP', tools: 1 },
-  ];
+  const connectors = state.connectors;
   target.innerHTML = connectors.map((connector) => `
     <article class="mini-connection">
       <div><span class="connector-mark ${esc(connector.id || connector.name).toLowerCase()}"></span><strong>${esc(connector.name)}</strong></div>
-      <span><i class="live-dot"></i> Connected</span>
+      <span><i class="${connector.connected ? 'live-dot' : ''}"></i> ${esc(connector.status || 'Unavailable')}</span>
       <small>${connector.tools || 1} protected tool${(connector.tools || 1) === 1 ? '' : 's'}</small>
     </article>
-  `).join('');
+  `).join('') || '<div class="empty-state">No MCP connectors are available.</div>';
 }
 
 function renderActivity(events) {
   const target = $('#activityTable');
-  const rows = events.length ? events : [
-    { source: 'slack', upstream_tool: 'search_messages', entities_hidden: 24, latency_ms: 18.4, timestamp: 'Live demo ready' },
-    { source: 'github', upstream_tool: 'search_repository', entities_hidden: 18, latency_ms: 14.8, timestamp: 'Live demo ready' },
-    { source: 'drive', upstream_tool: 'search_documents', entities_hidden: 12, latency_ms: 11.2, timestamp: 'Live demo ready' },
-  ];
+  const rows = events;
+  if (!rows.length) {
+    target.innerHTML = '<div class="empty-state">No protected requests have been recorded yet.</div>';
+    return;
+  }
   target.innerHTML = `
     <div class="activity-head"><span>Connector</span><span>Protected operation</span><span>Entities</span><span>Latency</span><span>Status</span></div>
     ${rows.slice(0, 5).map((event) => `
@@ -153,8 +152,9 @@ function renderConnectionCards() {
   const connectors = state.connectors.length ? state.connectors : [];
   target.innerHTML = connectors.map((connector) => `
     <article class="connection-detail-card">
-      <div class="connection-card-top"><div><span class="connector-mark ${esc(connector.id)}"></span><span class="card-kicker">${esc(connector.name)}</span></div><span class="safe-status"><i class="live-dot"></i> Connected</span></div>
-      <div class="connection-stat"><span>Status</span><strong>Connected</strong></div>
+      <div class="connection-card-top"><div><span class="connector-mark ${esc(connector.id)}"></span><span class="card-kicker">${esc(connector.name)}</span></div><span class="safe-status"><i class="${connector.connected ? 'live-dot' : ''}"></i> ${esc(connector.status || 'Unavailable')}</span></div>
+      <div class="connection-stat"><span>Status</span><strong>${esc(connector.status || 'Unavailable')}</strong></div>
+      <div class="connection-stat"><span>Connection</span><code>${esc(connector.detail || 'No connection details available')}</code></div>
       <div class="connection-stat"><span>Last request</span><code>${esc(connector.last_request || 'Ready for request')}</code></div>
       <div class="connection-stat"><span>Entities protected</span><strong>${Number(connector.entities_protected || 0)}</strong></div>
       <div class="connection-stat"><span>Data processed</span><strong>${Number(connector.data_processed || 0)} records</strong></div>
@@ -164,7 +164,7 @@ function renderConnectionCards() {
 
 function renderMemory() {
   const target = $('#memoryList');
-  const mappings = state.memory.length ? state.memory : FALLBACK_MAPPINGS;
+  const mappings = state.memory;
   $('#memoryEntriesLabel').textContent = `${mappings.length} active`;
   $('#memoryCount').textContent = `${mappings.length} mapped`;
   target.innerHTML = mappings.map((mapping) => `
@@ -173,7 +173,7 @@ function renderMemory() {
       <span class="memory-arrow">→</span>
       <code>${esc(String(mapping.placeholder).replace(/[\[\]]/g, ''))}</code>
     </div>
-  `).join('');
+  `).join('') || '<div class="empty-state">No local mappings have been created yet.</div>';
 }
 
 function renderLiveMapping(mappings) {
@@ -318,6 +318,16 @@ async function loadConnectors() {
   state.connectors = await response.json();
   renderOverviewConnections();
   renderConnectionCards();
+  const list = $('#connectorList');
+  list.innerHTML = state.connectors.map((connector) => `
+    <div class="connector">
+      <span class="conn-dot ${connector.connected ? 'on' : ''}"></span>
+      <span>${esc(connector.name)}</span>
+      <span class="conn-tools">${esc(connector.status || 'Unavailable')}</span>
+    </div>
+  `).join('');
+  const drive = state.connectors.find((connector) => connector.id === 'drive');
+  if (drive?.detail) $('#driveConnectHint').textContent = drive.detail;
 }
 
 async function loadMemory() {
@@ -346,6 +356,7 @@ $$('[data-go]').forEach((item) => item.addEventListener('click', () => setView(i
 $('#runDemo').addEventListener('click', runDemo);
 $('#firewallRun').addEventListener('click', runFirewall);
 $('#addTerm').addEventListener('click', addTerm);
+$('#connectDriveBtn').addEventListener('click', connectGoogleDrive);
 $('#newTermInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') addTerm(); });
 $$('.template-card').forEach((item) => item.addEventListener('click', () => applyTemplate(item.dataset.template)));
 $('#sourceSelect').addEventListener('change', () => {
