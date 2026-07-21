@@ -33,7 +33,7 @@ class _Match:
 
 
 EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
-PHONE_RE = re.compile(r"(?<!\w)(?:\+?\d[\d .()\-]{7,}\d)(?!\w)")
+PHONE_RE = re.compile(r"(?<!\w)(?:\+?\d[\d .()-]{7,}\d)(?!\w)")
 IPV4_RE = re.compile(r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b")
 JWT_RE = re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")
 API_KEY_RE = re.compile(r"\b(?:sk|pk|ghp|xox[baprs])-?[A-Za-z0-9_\-]{16,}\b", re.I)
@@ -69,6 +69,7 @@ class Sanitizer:
 
     def __init__(self, policy: dict, remembered_mappings: Sequence[MemoryEntry] = ()):
         self.policy = policy
+        self._active_types: set[str] = set(policy.get("active_entity_types", set()))
         self._by_value: dict[tuple[str, str], str] = {}
         self._original_by_placeholder: dict[str, str] = {}
         self._reverse_map: dict[str, str] = {}
@@ -81,6 +82,13 @@ class Sanitizer:
             number_match = re.search(r"_(\d+)\]$", entry.placeholder)
             if number_match:
                 self._counters[entry.entity_type] = max(self._counters.get(entry.entity_type, 0), int(number_match.group(1)))
+
+    def _is_active(self, entity_type: str) -> bool:
+        """Check whether the entity type is enabled by the current policy."""
+        # When no explicit filter is set, allow everything (backward compat).
+        if not self._active_types:
+            return True
+        return entity_type in self._active_types
 
     def _placeholder(self, entity_type: str, value: str, detector: str) -> str:
         key = (entity_type, _canonical(value))
@@ -106,11 +114,12 @@ class Sanitizer:
 
     def _dictionary_matches(self, text: str) -> Iterable[_Match]:
         for value, entity_type in self.policy.get("protected_terms", {}).items():
+            if not self._is_active(entity_type):
+                continue
             for match in re.finditer(re.escape(value), text, flags=re.IGNORECASE):
                 yield _Match(match.start(), match.end(), entity_type, match.group(0), "policy dictionary", 100)
 
-    @staticmethod
-    def _regex_matches(text: str) -> Iterable[_Match]:
+    def _regex_matches(self, text: str) -> Iterable[_Match]:
         patterns = (
             (JWT_RE, "TOKEN", "JWT pattern", 95),
             (API_KEY_RE, "API_KEY", "API key pattern", 94),
@@ -121,11 +130,14 @@ class Sanitizer:
             (PHONE_RE, "PHONE", "phone pattern", 70),
         )
         for pattern, entity_type, detector, priority in patterns:
+            if not self._is_active(entity_type):
+                continue
             for match in pattern.finditer(text):
                 yield _Match(match.start(), match.end(), entity_type, match.group(0), detector, priority)
-        for match in CREDIT_CARD_RE.finditer(text):
-            if _luhn_valid(match.group(0)):
-                yield _Match(match.start(), match.end(), "CREDIT_CARD", match.group(0), "Luhn-validated card", 98)
+        if self._is_active("CREDIT_CARD"):
+            for match in CREDIT_CARD_RE.finditer(text):
+                if _luhn_valid(match.group(0)):
+                    yield _Match(match.start(), match.end(), "CREDIT_CARD", match.group(0), "Luhn-validated card", 98)
 
     @staticmethod
     def _non_overlapping(matches: list[_Match]) -> list[_Match]:

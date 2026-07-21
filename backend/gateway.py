@@ -1,8 +1,8 @@
-"""ShieldAI's policy enforcement point.
+"""ShieldAI Context Firewall — the core enforcement point.
 
-The ordering here is intentional: authenticate -> authorize -> retrieve ->
-sanitize -> audit. Sensitive connector data is never returned before the
-sanitizer has transformed it.
+The ordering is: retrieve → sanitize → audit.
+There is no authentication or authorization step — ShieldAI protects
+*what* the LLM sees, not *who* can access the data.
 """
 
 from __future__ import annotations
@@ -12,9 +12,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .authorization import authorize, get_user
 from .context_proxy import ContextProxyEngine
-from .policies import get_policy
+from .policies import load_policy, policy_for_sanitizer
 from .project_memory import ProjectMemoryStore
 from .sanitizer import Sanitizer
 
@@ -44,53 +43,42 @@ class ShieldAIGateway:
 
     def execute(
         self,
-        user_id: str,
         tool_name: str,
         arguments: dict[str, Any],
-        policy_id: str = "defense",
+        policy: dict | None = None,
         include_mapping: bool = False,
     ) -> dict[str, Any]:
         started = time.perf_counter()
-        user = get_user(user_id)
-        allowed, reason = authorize(user, tool_name, arguments)
-        policy = get_policy(policy_id)
+        current_policy = policy or load_policy()
+        sanitizer_policy = policy_for_sanitizer(current_policy)
         project_id = str(arguments.get("project_id", "demo-falcon"))
 
-        base_event = {
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "user": user.name,
-            "department": user.department,
-            "role": user.role,
-            "tool": tool_name,
-            "policy": policy["name"],
-            "project_id": project_id,
-        }
-
-        if not allowed:
-            event = {**base_event, "decision": "BLOCK", "reason": reason, "entities_hidden": 0, "latency_ms": round((time.perf_counter() - started) * 1000, 1)}
-            self._audit(event)
-            return {"decision": "BLOCK", "reason": reason, "safe_context": "", "entities": [], "audit": event}
-
         source, upstream_tool, raw_context = self.proxy.retrieve(tool_name, arguments)
-        sanitizer = Sanitizer(policy, self.memory.load(project_id))
+        sanitizer = Sanitizer(sanitizer_policy, self.memory.load(project_id))
         safe_context = sanitizer.sanitize(raw_context)
         self.memory.remember(project_id, sanitizer.mapping)
+
         event = {
-            **base_event,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "tool": tool_name,
+            "policy": sanitizer_policy["name"],
+            "project_id": project_id,
             "source": source,
             "upstream_tool": upstream_tool,
-            "decision": "REDACT" if sanitizer.entities else "ALLOW",
-            "reason": reason,
+            "decision": "REDACT" if sanitizer.entities else "PASS",
             "entities_hidden": len(sanitizer.entities),
             "entity_types": sorted({entity["entity_type"] for entity in sanitizer.entities}),
             "latency_ms": round((time.perf_counter() - started) * 1000, 1),
         }
         self._audit(event)
-        response = {"decision": event["decision"], "reason": reason, "safe_context": safe_context, "entities": sanitizer.entities, "audit": event}
+
+        response: dict[str, Any] = {
+            "decision": event["decision"],
+            "safe_context": safe_context,
+            "entities": sanitizer.entities,
+            "audit": event,
+        }
         if include_mapping:
-            # The locally hosted dashboard may render raw context to an
-            # authorized human. This field is never returned through MCP or
-            # written into an audit event.
             response["raw_context"] = raw_context
             llm_response = self._safe_llm_demo(safe_context)
             response["mapping"] = sanitizer.mapping

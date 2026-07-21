@@ -2,8 +2,7 @@
 
 This implements a compact JSON-RPC endpoint at `POST /mcp` on port 8765. It
 shares the exact same tool handler as the stdio transport, so policy enforcement
-does not vary by client. `X-ShieldAI-User` is a demo-only identity header; a
-production desktop build replaces it with SSO-issued claims.
+does not vary by client. No user identity header is required.
 """
 
 from __future__ import annotations
@@ -47,7 +46,7 @@ class MCPHTTPHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(HTTPStatus.NO_CONTENT)
         self.send_header("Access-Control-Allow-Origin", os.getenv("SHIELDAI_DASHBOARD_ORIGIN", "http://127.0.0.1:8787"))
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, X-ShieldAI-User")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id")
         self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
         self.end_headers()
 
@@ -66,8 +65,7 @@ class MCPHTTPHandler(BaseHTTPRequestHandler):
             if length <= 0 or length > 250_000:
                 raise ValueError("Invalid MCP request size")
             message = json.loads(self.rfile.read(length).decode("utf-8"))
-            user_id = self.headers.get("X-ShieldAI-User", "john")
-            payload = handle(message, gateway, user_id=user_id)
+            payload = handle(message, gateway)
             if payload is None:
                 self.send_response(HTTPStatus.ACCEPTED)
                 self.end_headers()

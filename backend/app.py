@@ -1,4 +1,4 @@
-"""Local web dashboard and API for the ShieldAI MVP."""
+"""Local web dashboard and API for the ShieldAI Context Firewall."""
 
 from __future__ import annotations
 
@@ -16,9 +16,8 @@ from urllib.parse import urlparse
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.authorization import public_users
 from backend.gateway import ShieldAIGateway
-from backend.policies import public_policies
+from backend.policies import load_policy, save_policy, public_policy
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +29,6 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
     server_version = "ShieldAI/0.1"
 
     def log_message(self, _format: str, *_args: object) -> None:
-        # Keep the demo terminal readable; audit events are persisted separately.
         return
 
     def _json(self, data: dict | list, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -67,19 +65,15 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path == "/api/bootstrap":
-            self._json(
-                {
-                    "users": public_users(),
-                    "policies": public_policies(),
-                    "connectors": [
-                        {"name": "Slack", "status": "Protected", "tools": 2},
-                        {"name": "Google Drive", "status": "Protected", "tools": 1},
-                        {"name": "GitHub", "status": "Protected", "tools": 1},
-                    ],
-                    "logs": gateway.recent_audit_events(),
-                }
-            )
+        if path == "/api/policy":
+            self._json(public_policy(load_policy()))
+            return
+        if path == "/api/connectors":
+            self._json([
+                {"name": "Slack", "status": "Connected", "tools": 2},
+                {"name": "Google Drive", "status": "Connected", "tools": 1},
+                {"name": "GitHub", "status": "Connected", "tools": 1},
+            ])
             return
         if path == "/api/logs":
             self._json(gateway.recent_audit_events())
@@ -88,30 +82,45 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path != "/api/demo":
-            self.send_error(HTTPStatus.NOT_FOUND)
+
+        if path == "/api/policy":
+            try:
+                payload = self._body()
+                current = load_policy()
+                if "hide_categories" in payload:
+                    current["hide_categories"] = list(payload["hide_categories"])
+                if "custom_dictionary" in payload:
+                    current["custom_dictionary"] = dict(payload["custom_dictionary"])
+                if "company_name" in payload:
+                    current["company_name"] = str(payload["company_name"])
+                save_policy(current)
+                self._json(public_policy(current))
+            except (ValueError, json.JSONDecodeError) as exc:
+                self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
             return
-        try:
-            payload = self._body()
-            response = gateway.execute(
-                user_id=str(payload.get("user_id", "john")),
-                tool_name=str(payload.get("tool", "shieldai_search_slack_messages")),
-                arguments={
+
+        if path == "/api/protect":
+            try:
+                payload = self._body()
+                tool = str(payload.get("tool", "shieldai_search_slack_messages"))
+                arguments = {
                     "query": str(payload.get("query", "Falcon")),
                     "channel": str(payload.get("channel", "engineering")),
-                },
-                policy_id=str(payload.get("policy_id", "defense")),
-                include_mapping=True,
-            )
-            self._json(response)
-        except (PermissionError, ValueError, json.JSONDecodeError) as exc:
-            self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+                }
+                response = gateway.execute(
+                    tool_name=tool,
+                    arguments=arguments,
+                    include_mapping=True,
+                )
+                self._json(response)
+            except (ValueError, json.JSONDecodeError) as exc:
+                self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            return
+
+        self.send_error(HTTPStatus.NOT_FOUND)
 
 
 def main() -> None:
-    # Desktop mode remains loopback-only. Docker opts in to 0.0.0.0 inside
-    # its private network, while Compose still publishes the port only to the
-    # host loopback interface.
     address = (os.getenv("SHIELDAI_BIND_HOST", "127.0.0.1"), 8787)
     print(f"ShieldAI dashboard running at http://{address[0]}:{address[1]}")
     ThreadingHTTPServer(address, ShieldAIHandler).serve_forever()

@@ -1,0 +1,23 @@
+{
+  "company_name": "Acme Defense",
+  "hide_categories": [
+    "projects",
+    "people",
+    "money",
+    "api_keys",
+    "locations",
+    "databases",
+    "customers",
+    "contact"
+  ],
+  "custom_dictionary": {
+    "Project Falcon": "PROJECT",
+    "Acme Defense": "COMPANY",
+    "Lockheed": "COMPANY",
+    "John Smith": "PERSON",
+    "Rina Patel": "PERSON",
+    "North Ridge Test Facility": "LOCATION",
+    "Aegis-9": "INTERNAL_SYSTEM",
+    "Orion Database": "DATABASE"
+  }
+}
