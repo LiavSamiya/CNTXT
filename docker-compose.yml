@@ -1,5 +1,5 @@
-# `name` gives this stack its own Compose project namespace.  It therefore
-# never shares service names, network, or persisted data with VooDo.
+# `name` gives this stack its own Compose project namespace with dedicated
+# service names, network and persisted data.
 name: shieldai
 
 services:

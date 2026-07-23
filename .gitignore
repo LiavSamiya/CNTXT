@@ -1,6 +1,6 @@
 __pycache__/
 *.py[cod]
-data/audit.jsonl
-data/google_token.json
+data/*
+!data/.gitkeep
 secrets/
 .env

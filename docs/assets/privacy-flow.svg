@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">ShieldAI privacy transformation flow</title>
+  <desc id="desc">Raw enterprise context becomes local placeholders before safe context reaches an AI model.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#080b12"/>
+      <stop offset="1" stop-color="#102131"/>
+    </linearGradient>
+    <linearGradient id="gateway" x1="0" x2="1">
+      <stop offset="0" stop-color="#12364a"/>
+      <stop offset="1" stop-color="#153c3d"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-50%" width="160%" height="200%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5bd7ff"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="360" rx="24" fill="url(#background)"/>
+  <text x="60" y="70" fill="#f4f7fb" font-family="Arial, sans-serif" font-size="30" font-weight="700">ShieldAI privacy transformation</text>
+  <text x="60" y="102" fill="#aab7c8" font-family="Arial, sans-serif" font-size="17">Raw values remain local. Only safe placeholders cross the model boundary.</text>
+  <g font-family="Arial, sans-serif">
+    <rect x="60" y="155" width="235" height="130" rx="16" fill="#121a27" stroke="#ff8494" stroke-width="2"/>
+    <text x="84" y="190" fill="#ff8494" font-size="14" font-weight="700">LOCAL RAW CONTEXT</text>
+    <text x="84" y="223" fill="#f4f7fb" font-size="17">Project Falcon</text>
+    <text x="84" y="249" fill="#f4f7fb" font-size="17">John Smith · $15M</text>
+    <line x1="315" y1="220" x2="430" y2="220" stroke="#5bd7ff" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="450" y="140" width="300" height="160" rx="18" fill="url(#gateway)" stroke="#5bd7ff" stroke-width="2" filter="url(#glow)"/>
+    <text x="490" y="186" fill="#5bd7ff" font-size="15" font-weight="700">SHIELDAI LOCAL GATEWAY</text>
+    <text x="490" y="220" fill="#f4f7fb" font-size="19" font-weight="700">Policy + Sanitizer</text>
+    <text x="490" y="250" fill="#aab7c8" font-size="15">Dictionary · Regex · Memory</text>
+    <line x1="770" y1="220" x2="885" y2="220" stroke="#55dca3" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="905" y="155" width="235" height="130" rx="16" fill="#10251f" stroke="#55dca3" stroke-width="2"/>
+    <text x="929" y="190" fill="#55dca3" font-size="14" font-weight="700">SAFE AI CONTEXT</text>
+    <text x="929" y="223" fill="#f4f7fb" font-size="17">[PROJECT_1]</text>
+    <text x="929" y="249" fill="#f4f7fb" font-size="17">[PERSON_1] · [AMOUNT_1]</text>
+  </g>
+</svg>
