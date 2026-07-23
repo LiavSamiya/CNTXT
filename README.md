@@ -36,7 +36,7 @@ does not imply an endorsement or affiliation by OpenAI.
 - [Pitch deck (PDF)](docs/Cntxt-Pitch-Deck.pdf)
 - [Hackathon story and acknowledgments](docs/HACKATHON_CREDITS.md)
 - [Detailed project overview (Hebrew)](docs/PROJECT_OVERVIEW.md)
-=======
+  
 ## Team credits
 
 Built by the ShieldAI / CNTXT team:
@@ -47,7 +47,6 @@ Built by the ShieldAI / CNTXT team:
 | Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
 | Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
 | Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
->>>>>>> 0093a0759e709567e679b5c9bcc65f5c7d6634b5
 
 ## What works today
 
@@ -372,8 +371,7 @@ gratitude to **OpenAI Build Week**, **OpenAI Codex**, organizers
 [Eliezer Steinbock](https://www.linkedin.com/in/elie222/), and hosts **Echo**
 and **Xsolla**. See [the full attribution and project origin](docs/HACKATHON_CREDITS.md).
 
-=======
->>>>>>> 0093a0759e709567e679b5c9bcc65f5c7d6634b5
+
 ## License
 
 This project is distributed under the [BSD 3-Clause License](LICENSE).
