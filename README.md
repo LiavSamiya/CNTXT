@@ -16,9 +16,20 @@ Project Falcon is delayed at North Ridge Test Facility.
 [PROJECT_1] is delayed at [LOCATION_1].
 ```
 
-No external AI model is used to detect sensitive data. For the detailed Hebrew
+For the detailed Hebrew
 project page, see [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md). For a
 presentation flow, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
+## Team credits
+
+Built by the ShieldAI / CNTXT team:
+
+| Team member | LinkedIn |
+| --- | --- |
+| Liav Samiya | [linkedin.com/in/liav-samiya](https://www.linkedin.com/in/liav-samiya/) |
+| Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
+| Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
+| Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
 
 ## What works today
 
@@ -38,17 +49,6 @@ presentation flow, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 The dashboard explicitly labels demo sources as `Demo data`. It should not be
 presented as a live Slack or GitHub integration.
-
-## Team credits
-
-Built by the ShieldAI / CNTXT team:
-
-| Team member | LinkedIn |
-| --- | --- |
-| Liav Samiya | [linkedin.com/in/liav-samiya](https://www.linkedin.com/in/liav-samiya/) |
-| Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
-| Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
-| Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
 
 ## Architecture
 
