@@ -1,4 +1,4 @@
-# ShieldAI / CNTXT
+# CNTXT
 
 <p align="center">
   <img src="docs/assets/cntxt-logo.png" alt="CNTXT — AI Context Firewall" width="440" />
@@ -39,7 +39,7 @@ does not imply an endorsement or affiliation by OpenAI.
   
 ## Team credits
 
-Built by the ShieldAI / CNTXT team:
+Built by the CNTXT team:
 
 | Team member | LinkedIn |
 | --- | --- |
@@ -253,7 +253,7 @@ Never paste OAuth JSON, tokens or client secrets into chat or commit them.
 
 ## Docker — isolated local services
 
-ShieldAI uses its own Docker Compose project, containers, network and volume:
+CNTXT uses its own Docker Compose project, containers, network and volume:
 
 ```text
 Containers: shieldai-dashboard, shieldai-mcp
@@ -272,7 +272,7 @@ docker compose ps
 | Dashboard | `http://127.0.0.1:18787` |
 | MCP HTTP | `http://127.0.0.1:18765/mcp` |
 
-Both ports bind to `127.0.0.1` only. To stop the local ShieldAI stack:
+Both ports bind to `127.0.0.1` only. To stop the local stack:
 
 ```powershell
 docker compose down
@@ -350,18 +350,6 @@ pastes secrets directly into a third-party chat.
 
 For the architecture story, exact current-state assessment and presentation
 positioning, read [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md).
-
-<<<<<<< HEAD
-## Team credits
-
-Built by the ShieldAI / CNTXT team:
-
-| Team member | LinkedIn |
-| --- | --- |
-| Liav Samiya | [linkedin.com/in/liav-samiya](https://www.linkedin.com/in/liav-samiya/) |
-| Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
-| Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
-| Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
 
 ## Hackathon acknowledgments
 
