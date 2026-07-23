@@ -11,7 +11,7 @@ const FALLBACK_MAPPINGS = [
   { original_value: 'API key', placeholder: '[SECRET_1]', entity_type: 'SECRET' },
 ];
 
-const state = { policy: null, overview: null, connectors: [], memory: [], activeView: 'overview', busy: false };
+const state = { policy: null, overview: null, connectors: [], memory: [], activeView: 'overview', busy: false, documentFile: null };
 
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -279,13 +279,8 @@ async function runFirewall() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'The gateway could not protect this request');
 
-    $('#rawOutput').textContent = data.raw_context || 'No raw context was returned.';
-    $('#safeOutput').textContent = data.safe_context || 'No transformation needed.';
-    $('#entityCount').textContent = `${(data.entities || []).length} entities transformed`;
-    $('#latencyCount').textContent = `${data.audit?.latency_ms ?? '—'} ms`;
-    $('#projectMemoryCount').textContent = `${data.project_memory_entries ?? 0} memory mappings`;
+    renderProtectionResult(data);
     $('#firewallResult').textContent = 'Protected context returned to the AI client. Original values stayed local.';
-    renderLiveMapping(data.mapping);
     await Promise.all([loadMemory(), loadOverview(), loadConnectors()]);
   } catch (error) {
     $('#firewallResult').textContent = `Protection request failed: ${error.message}`;
@@ -294,6 +289,72 @@ async function runFirewall() {
     state.busy = false;
     button.disabled = false;
     button.innerHTML = 'Protect context <span>→</span>';
+  }
+}
+
+function renderProtectionResult(data) {
+  $('#rawOutput').textContent = data.raw_context || 'No readable local context was returned.';
+  $('#safeOutput').textContent = data.safe_context || 'No transformation needed.';
+  $('#entityCount').textContent = `${(data.entities || []).length} entities transformed`;
+  $('#latencyCount').textContent = `${data.audit?.latency_ms ?? '—'} ms`;
+  $('#projectMemoryCount').textContent = `${data.project_memory_entries ?? 0} memory mappings`;
+  renderLiveMapping(data.mapping);
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function selectDocument() {
+  const file = $('#documentInput').files?.[0] || null;
+  state.documentFile = file;
+  const button = $('#protectDocumentBtn');
+  button.disabled = !file;
+  $('#documentUploadStatus').textContent = file
+    ? `Selected ${file.name} · ${formatBytes(file.size)} · it will be converted only on this local gateway.`
+    : 'Files are converted with local MarkItDown and removed after processing.';
+}
+
+async function protectDocument() {
+  const file = state.documentFile;
+  if (!file || state.busy) return;
+  state.busy = true;
+  const button = $('#protectDocumentBtn');
+  button.disabled = true;
+  button.textContent = 'Converting locally…';
+  $('#documentUploadStatus').textContent = 'MarkItDown is converting the file locally; no document content is sent to a cloud service.';
+  $('#firewallResult').textContent = 'Extracting document text inside the CNTXT boundary…';
+
+  try {
+    const request = fetch('/api/documents/protect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+        'X-File-Name': encodeURIComponent(file.name),
+        'X-Project-Id': 'local-upload',
+      },
+      body: file,
+    });
+    await animatePipeline();
+    const response = await request;
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'The local document could not be protected');
+
+    renderProtectionResult(data);
+    const document = data.document || {};
+    $('#documentUploadStatus').textContent = `${document.filename || file.name} converted locally to Markdown (${Number(document.markdown_characters || 0).toLocaleString()} characters) and protected.`;
+    $('#firewallResult').textContent = 'Protected document context is ready. Only the sanitized Markdown may cross the model boundary.';
+    await Promise.all([loadMemory(), loadOverview(), loadConnectors()]);
+    showToast('Document converted and protected locally');
+  } catch (error) {
+    $('#documentUploadStatus').textContent = `Local conversion failed: ${error.message}`;
+    $('#firewallResult').textContent = `Document protection failed: ${error.message}`;
+    showToast(error.message);
+  } finally {
+    state.busy = false;
+    button.disabled = !state.documentFile;
+    button.textContent = 'Protect document →';
   }
 }
 
@@ -355,6 +416,8 @@ $$('.nav-item').forEach((item) => item.addEventListener('click', () => setView(i
 $$('[data-go]').forEach((item) => item.addEventListener('click', () => setView(item.dataset.go)));
 $('#runDemo').addEventListener('click', runDemo);
 $('#firewallRun').addEventListener('click', runFirewall);
+$('#documentInput').addEventListener('change', selectDocument);
+$('#protectDocumentBtn').addEventListener('click', protectDocument);
 $('#addTerm').addEventListener('click', addTerm);
 $('#connectDriveBtn').addEventListener('click', connectGoogleDrive);
 $('#newTermInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') addTerm(); });

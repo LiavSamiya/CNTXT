@@ -3,8 +3,10 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import Mock
 
 from backend.context_proxy import ContextProxyEngine
+from backend.document_converter import DocumentConversionError, LocalDocumentConverter
 from backend.gateway import ShieldAIGateway
 from backend.project_memory import ProjectMemoryStore
 from backend.sanitizer import Sanitizer
@@ -82,6 +84,44 @@ class GatewayTests(unittest.TestCase):
             self.assertIn("[PROJECT_1]", first["safe_context"])
             self.assertIn("[PROJECT_1]", second["safe_context"])
             self.assertGreaterEqual(memory.count("falcon"), 8)
+
+    def test_local_document_text_uses_the_same_enforcement_path(self) -> None:
+        with TemporaryDirectory() as directory:
+            memory = ProjectMemoryStore(Path(directory) / "memory.db")
+            result = ShieldAIGateway(memory=memory).protect_text(
+                "Project Falcon budget is $15,000,000.",
+                project_id="local-upload",
+                source="local_upload",
+                upstream_tool="markitdown.convert_local",
+                include_mapping=False,
+                audit_metadata={"document_format": ".pdf"},
+            )
+            self.assertIn("[PROJECT_1]", result["safe_context"])
+            self.assertIn("[AMOUNT_1]", result["safe_context"])
+            self.assertNotIn("raw_context", result)
+            self.assertEqual(result["audit"]["document_format"], ".pdf")
+
+
+class DocumentConverterTests(unittest.TestCase):
+    def test_rejects_unapproved_extension_before_conversion(self) -> None:
+        with self.assertRaises(DocumentConversionError):
+            LocalDocumentConverter.validate_upload("archive.zip", b"not a zip")
+
+    def test_converter_uses_a_temporary_local_file(self) -> None:
+        with TemporaryDirectory() as directory:
+            converter = LocalDocumentConverter(staging_dir=Path(directory))
+            fake_result = Mock(text_content="Project Falcon is active.")
+            fake_markitdown = Mock()
+            fake_markitdown.convert_local.return_value = fake_result
+            converter._markitdown = Mock(return_value=fake_markitdown)  # type: ignore[method-assign]
+
+            result = converter.convert_bytes("brief.txt", b"Project Falcon is active.")
+
+            self.assertEqual(result.extension, ".txt")
+            self.assertEqual(result.markdown, "Project Falcon is active.")
+            converted_path = fake_markitdown.convert_local.call_args.args[0]
+            self.assertEqual(converted_path.name, "document.txt")
+            self.assertFalse(converted_path.exists())
 
 
 class ContextProxyTests(unittest.TestCase):

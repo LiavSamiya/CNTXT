@@ -48,12 +48,33 @@ class ShieldAIGateway:
         policy: dict | None = None,
         include_mapping: bool = False,
     ) -> dict[str, Any]:
+        source, upstream_tool, raw_context = self.proxy.retrieve(tool_name, arguments)
+        return self.protect_text(
+            raw_context,
+            project_id=str(arguments.get("project_id", "demo-falcon")),
+            source=source,
+            upstream_tool=upstream_tool,
+            tool_name=tool_name,
+            policy=policy,
+            include_mapping=include_mapping,
+        )
+
+    def protect_text(
+        self,
+        raw_context: str,
+        *,
+        project_id: str,
+        source: str,
+        upstream_tool: str,
+        tool_name: str = "shieldai_protect_local_document",
+        policy: dict | None = None,
+        include_mapping: bool = False,
+        audit_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Apply the same local enforcement path to already-retrieved text."""
         started = time.perf_counter()
         current_policy = policy or load_policy()
         sanitizer_policy = policy_for_sanitizer(current_policy)
-        project_id = str(arguments.get("project_id", "demo-falcon"))
-
-        source, upstream_tool, raw_context = self.proxy.retrieve(tool_name, arguments)
         sanitizer = Sanitizer(sanitizer_policy, self.memory.load(project_id))
         safe_context = sanitizer.sanitize(raw_context)
         self.memory.remember(project_id, sanitizer.mapping)
@@ -70,6 +91,8 @@ class ShieldAIGateway:
             "entity_types": sorted({entity["entity_type"] for entity in sanitizer.entities}),
             "latency_ms": round((time.perf_counter() - started) * 1000, 1),
         }
+        if audit_metadata:
+            event.update(audit_metadata)
         self._audit(event)
 
         response: dict[str, Any] = {

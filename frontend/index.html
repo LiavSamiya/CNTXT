@@ -123,6 +123,18 @@
             </label>
             <button class="primary-button firewall-run" id="firewallRun">Protect context <span>→</span></button>
           </div>
+          <div class="document-upload" id="documentUpload">
+            <div>
+              <p class="eyebrow">Local document firewall</p>
+              <strong>Convert, inspect, and protect a file before an AI model sees it.</strong>
+              <small>PDF, DOCX, PPTX, XLSX, XLS, TXT, Markdown, CSV, or JSON · 10 MB maximum · no cloud conversion</small>
+            </div>
+            <div class="document-upload-actions">
+              <label class="file-picker" for="documentInput"><span>Choose file</span><input id="documentInput" type="file" accept=".pdf,.docx,.pptx,.xlsx,.xls,.txt,.md,.csv,.json" /></label>
+              <button class="quiet-button" id="protectDocumentBtn" type="button" disabled>Protect document →</button>
+            </div>
+            <p class="document-upload-status" id="documentUploadStatus">Files are converted with local MarkItDown and removed after processing.</p>
+          </div>
           <div class="firewall-stage">
             <article class="context-panel raw-panel">
               <div class="context-heading"><div><span class="status-square danger"></span><span>RAW MCP CONTEXT</span></div><small>LOCAL ONLY</small></div>

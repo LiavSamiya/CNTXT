@@ -4,3 +4,4 @@ data/*
 !data/.gitkeep
 secrets/
 .env
+tmp/

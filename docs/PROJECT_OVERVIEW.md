@@ -10,6 +10,29 @@
 למוצר ארגוני מלא. הוא משלים את [README](../README.md), שמכיל הוראות הפעלה
 טכניות.
 
+## מקור הפרויקט: OpenAI Build Week בתל אביב
+
+CNTXT נבנתה תחילה כ־MVP חי במסגרת **OpenAI Build Week Community Hackathon**
+בתל אביב. בתוך חלון בנייה קצר הצוות עבר מרעיון של שכבת פרטיות לסוכן AI אל דמו
+פעיל: קבלת context ממקור ארגוני, סינון מקומי, והחזרת context בטוח עם
+placeholders עקביים. לפי סיכום האירוע שנמסר לצוות, השתתפו בו יותר מ־100 בונים
+ביותר מ־30 צוותים, שבנו והציגו מוצרים עובדים במשך כשש שעות.
+
+הפוקוס של CNTXT נולד ישירות מהשאלה שנידונה בהאקתון: הרשאות ל־connector קובעות
+מי יכול לגשת למקור, אבל לא בהכרח איזה ערכים רגישים ייכנסו ל־context של המודל.
+לכן CNTXT היא שכבת **context security** משלימה ל־MCP gateway: היא מטפלת בערכים
+שיוצאים מה־connector לפני שהם מגיעים למודל.
+
+בפיתוח ה־MVP נעזרנו ב־**OpenAI Codex** כדי לאפיין, לממש, לבדוק ולתעד את
+המערכת. תודה ל־OpenAI Build Week, למארגנים
+[Vlad Tansky](https://www.linkedin.com/in/vlad-tansky/) ו־[Eliezer
+Steinbock](https://www.linkedin.com/in/elie222/), ולמארחים Echo ו־Xsolla.
+הקרדיט הוא הוקרה על האירוע והכלים; הוא אינו מצביע על חסות, שותפות או אישור
+רשמי מצד הגורמים המוזכרים.
+
+המצגת המקורית נמצאת ב־[Cntxt-Pitch-Deck.pdf](Cntxt-Pitch-Deck.pdf), ופירוט
+הקרדיטים נמצא ב־[HACKATHON_CREDITS.md](HACKATHON_CREDITS.md).
+
 ## 1. הבעיה
 
 עובדים רוצים להשתמש ב־Codex, ChatGPT, Claude וסוכני AI אחרים מול Slack,
@@ -179,8 +202,10 @@ OAuth ו־session management של MCP.
 | GPT / Claude / Gemini | לא מחובר | תשובת המודל בדשבורד היא local demo response |
 
 החיבור ל־Google Drive הוא adapter ישיר ל־Drive API, לא ל־Google Drive MCP
-חיצוני. הוא קורא Google Docs וקבצים טקסטואליים מקומית ואז מעביר אותם דרך
-הסניטייזר.
+חיצוני. הוא קורא Google Docs וקבצים טקסטואליים מקומית; PDF וקובצי Word,
+PowerPoint ו־Excel עוברים המרה מקומית ל־Markdown באמצעות MarkItDown ואז
+מועברים דרך הסניטייזר. גם העלאת קובץ מתוך המסך Live Firewall משתמשת באותו
+מסלול. אין OCR, plugins או מודל חיצוני בתהליך ההמרה.
 
 ## 9. ממשק המשתמש
 
@@ -269,7 +294,7 @@ Slack / GitHub / Drive / internal MCP servers
    המודל רשאי לראות.
 3. לשמור tokens ומיפויים ב־vault מוצפן או OS keychain.
 4. להוסיף connectors אמיתיים ל־Slack ול־GitHub.
-5. להוסיף MarkItDown מקומי להמרת PDF, DOCX, XLSX, PPTX ותמונות ל־text/Markdown.
+5. להוסיף OCR מקומי אופציונלי לקבצים סרוקים ולבדוק אותו מול מדיניות מפורשת.
 6. להוסיף approval flow, versioned policies, SIEM export ודוחות compliance.
 
 ## 14. מיצוב מול מוצרים כמו Willow

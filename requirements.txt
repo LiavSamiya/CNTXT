@@ -1,2 +1,2 @@
-# ShieldAI currently uses Python's standard library only.
-# Optional document converters such as MarkItDown can be added later.
+# Local conversion only: selected extras avoid cloud, OCR, and plugin features.
+markitdown[pdf,docx,pptx,xlsx,xls]>=0.1.4,<1.0

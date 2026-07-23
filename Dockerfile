@@ -5,6 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install only the selected local MarkItDown converters. No OCR, cloud parser,
+# or plugin dependency is included in this image.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 # ShieldAI handles raw enterprise context.  Keep the service process separate
 # from the root user used while the image is built.
 RUN addgroup --system shieldai && adduser --system --ingroup shieldai shieldai

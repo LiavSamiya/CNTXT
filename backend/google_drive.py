@@ -22,6 +22,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
+from .document_converter import DocumentConversionError, LocalDocumentConverter
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CREDENTIALS_PATH = ROOT / "secrets" / "google-oauth-client.json"
@@ -60,6 +62,7 @@ class GoogleDriveConnector:
         configured = os.getenv("SHIELDAI_GOOGLE_OAUTH_CLIENT")
         self.credentials_path = Path(configured) if configured else (credentials_path or DEFAULT_CREDENTIALS_PATH)
         self.token_path = token_path or DEFAULT_TOKEN_PATH
+        self.document_converter = LocalDocumentConverter()
 
     def status(self) -> dict[str, str | bool]:
         if not self.credentials_path.is_file():
@@ -203,6 +206,20 @@ class GoogleDriveConnector:
             if mime_type in {"text/plain", "text/markdown", "application/json", "text/csv", "text/html"}:
                 url = "https://www.googleapis.com/drive/v3/files/" + urllib.parse.quote(file_id) + "?alt=media"
                 return self._request(url).decode("utf-8", errors="replace")
+            if mime_type in {
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel",
+            }:
+                url = "https://www.googleapis.com/drive/v3/files/" + urllib.parse.quote(file_id) + "?alt=media"
+                converted = self.document_converter.convert_bytes(
+                    file.get("name", "document"), self._request(url)
+                )
+                return converted.markdown
+        except DocumentConversionError as exc:
+            return f"[Could not convert file locally: {exc}]"
         except GoogleDriveError as exc:
             return f"[Could not read file content: {exc}]"
         return f"[Metadata only: conversion for {mime_type or 'this file type'} is not enabled yet.]"

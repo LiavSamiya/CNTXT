@@ -20,6 +20,22 @@ No external AI model is used to detect sensitive data. For the detailed Hebrew
 project page, see [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md). For a
 presentation flow, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
+## Built at OpenAI Build Week — Tel Aviv
+
+CNTXT was conceived and developed as a live, working MVP at the **OpenAI Build
+Week Community Hackathon in Tel Aviv**. The project explores a practical
+question that emerged from the event: how can an AI agent use enterprise
+context without the model receiving the sensitive values inside it?
+
+The team used **OpenAI Codex** as a development partner while turning the idea
+into a running prototype: iterating on the gateway architecture, local
+sanitization flow, interface, tests, and documentation. This acknowledgment
+does not imply an endorsement or affiliation by OpenAI.
+
+- [Pitch deck (PDF)](docs/Cntxt-Pitch-Deck.pdf)
+- [Hackathon story and acknowledgments](docs/HACKATHON_CREDITS.md)
+- [Detailed project overview (Hebrew)](docs/PROJECT_OVERVIEW.md)
+
 ## What works today
 
 | Capability | Status |
@@ -31,6 +47,7 @@ presentation flow, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 | Local HTTP JSON-RPC MCP endpoint | Working for the MVP |
 | Dark-mode policy/dashboard UI | Working |
 | Local audit metadata without raw context | Working |
+| Local file upload → Markdown → sanitization | Working after MarkItDown installation |
 | Slack and GitHub source adapters | Demo data only |
 | Google Drive adapter | Optional real, read-only OAuth |
 | External LLM response | Not implemented; dashboard response is local demo text |
@@ -81,10 +98,11 @@ UI; it must never be sent back to an external model.
 
 ## Quick start on Windows
 
-Requirements: Python 3.10+; the core MVP uses only the Python standard library.
+Requirements: Python 3.10+ and the local MarkItDown converters.
 
 ```powershell
 cd C:\path\to\shieldai
+python -m pip install -r requirements.txt
 python backend\app.py
 ```
 
@@ -92,6 +110,12 @@ If Conda Python is not on your `PATH`:
 
 ```powershell
 & "C:\Users\liavs\anaconda3\python.exe" backend\app.py
+```
+
+For Conda, install the same local dependency once:
+
+```powershell
+& "C:\Users\liavs\anaconda3\python.exe" -m pip install -r requirements.txt
 ```
 
 Open [http://127.0.0.1:8787](http://127.0.0.1:8787). Frontend files are served
@@ -150,6 +174,7 @@ Origin validation and authentication.
 | `/api/connectors` | `GET` | Connector status and tools |
 | `/api/policy` | `GET`, `POST` | Read or update policy |
 | `/api/protect` | `POST` | Full demo retrieve → sanitize → audit flow |
+| `/api/documents/protect` | `POST` | Local file → Markdown → sanitize flow |
 | `/api/memory?project_id=...` | `GET` | Local placeholder continuity |
 | `/api/logs` | `GET` | Recent audit metadata |
 | `/api/connectors/google-drive/authorize` | `POST` | Start local Drive OAuth |
@@ -194,8 +219,23 @@ data/google_token.json
 ```
 
 Google Docs and text, Markdown, JSON, CSV and HTML files are read locally
-before sanitization. Other formats currently return metadata-only text.
-MarkItDown is a future local converter for PDF, DOCX, XLSX and PPTX.
+before sanitization. PDFs and Office documents downloaded from Drive use the
+same local MarkItDown converter as uploads. See the precise
+[Google Drive setup guide](docs/GOOGLE_DRIVE_SETUP.md).
+
+## Local document conversion
+
+The dashboard's **Live firewall** view accepts PDF, DOCX, PPTX, XLSX, XLS,
+TXT, Markdown, CSV and JSON files up to 10 MB. MarkItDown converts the file to
+Markdown locally; CNTXT then sends that extracted text through the same policy,
+placeholder and audit path as MCP connector context. The original file is held
+only in an ephemeral local staging directory during conversion and is not
+recorded in the audit log.
+
+This image installs a deliberately small subset of
+[Microsoft MarkItDown](https://github.com/microsoft/markitdown): PDF, Word,
+PowerPoint and Excel converters. Plugins, OCR and LLM-based image descriptions
+are disabled, so conversion itself does not use an external AI service.
 
 Never paste OAuth JSON, tokens or client secrets into chat or commit them.
 
@@ -261,6 +301,7 @@ backend/
   mcp_server.py       stdio MCP server
   mcp_http.py         Local HTTP MCP endpoint
   google_drive.py     Optional read-only Drive OAuth adapter
+  document_converter.py  Constrained local MarkItDown conversion
   connectors.py       Local Slack, Drive and GitHub demo datasets
 frontend/             Dependency-free dark-mode dashboard
 desktop/              Optional Electron shell
@@ -292,7 +333,7 @@ pastes secrets directly into a third-party chat.
 2. SSO/OAuth, identity propagation, RBAC and per-connector scopes.
 3. Real Slack and GitHub connectors.
 4. Encryption for memory and OAuth tokens.
-5. Local MarkItDown-based extraction for PDFs and Office files.
+5. Optional local OCR for scanned documents, behind an explicit policy.
 6. Streaming, approvals, policy versioning, SIEM exports and compliance reports.
 
 For the architecture story, exact current-state assessment and presentation
@@ -308,6 +349,14 @@ Built by the ShieldAI / CNTXT team:
 | Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
 | Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
 | Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
+
+## Hackathon acknowledgments
+
+Built during the OpenAI Build Week Community Hackathon in Tel Aviv, with
+gratitude to **OpenAI Build Week**, **OpenAI Codex**, organizers
+[Vlad Tansky](https://www.linkedin.com/in/vlad-tansky/) and
+[Eliezer Steinbock](https://www.linkedin.com/in/elie222/), and hosts **Echo**
+and **Xsolla**. See [the full attribution and project origin](docs/HACKATHON_CREDITS.md).
 
 ## License
 

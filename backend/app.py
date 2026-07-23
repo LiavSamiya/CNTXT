@@ -9,7 +9,7 @@ import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 # `python backend/app.py` places backend/ rather than the project root on
 # sys.path. Add the root so the package imports below work from the README.
@@ -18,11 +18,13 @@ if __package__ in (None, ""):
 
 from backend.gateway import ShieldAIGateway
 from backend.policies import load_policy, save_policy, public_policy
+from backend.document_converter import DocumentConversionError, LocalDocumentConverter
 
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend"
 gateway = ShieldAIGateway()
+document_converter = LocalDocumentConverter()
 
 
 class ShieldAIHandler(BaseHTTPRequestHandler):
@@ -46,6 +48,20 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
             raise ValueError("Request payload is too large")
         payload = self.rfile.read(length).decode("utf-8")
         return json.loads(payload or "{}")
+
+    def _binary_body(self, limit: int) -> bytes:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError as exc:
+            raise ValueError("Invalid upload length") from exc
+        if length <= 0:
+            raise ValueError("Select a non-empty file")
+        if length > limit:
+            raise ValueError("Files larger than 10 MB are not accepted")
+        payload = self.rfile.read(length)
+        if len(payload) != length:
+            raise ValueError("The local upload was incomplete")
+        return payload
 
     def _serve_static(self, path: str) -> None:
         requested = "index.html" if path in ("", "/") else path.lstrip("/")
@@ -167,6 +183,37 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
                 self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
             return
 
+        if path == "/api/documents/protect":
+            try:
+                encoded_filename = self.headers.get("X-File-Name", "")
+                filename = unquote(encoded_filename)
+                project_id = str(self.headers.get("X-Project-Id", "local-upload"))[:120]
+                content = self._binary_body(document_converter.MAX_UPLOAD_BYTES)
+                converted = document_converter.convert_bytes(filename, content)
+                response = gateway.protect_text(
+                    converted.markdown,
+                    project_id=project_id or "local-upload",
+                    source="local_upload",
+                    upstream_tool="markitdown.convert_local",
+                    include_mapping=True,
+                    audit_metadata={
+                        "document_format": converted.extension,
+                        "converted_characters": len(converted.markdown),
+                    },
+                )
+                # The filename is returned only to the local dashboard. It is
+                # intentionally not included in the audit event.
+                response["document"] = {
+                    "filename": converted.filename,
+                    "format": converted.extension.removeprefix("."),
+                    "markdown_characters": len(converted.markdown),
+                    "converter": "MarkItDown (local)",
+                }
+                self._json(response)
+            except (DocumentConversionError, ValueError) as exc:
+                self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            return
+
         if path == "/api/connectors/google-drive/authorize":
             try:
                 # This opens Google's consent page locally. The user must
@@ -180,7 +227,10 @@ class ShieldAIHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    address = (os.getenv("SHIELDAI_BIND_HOST", "127.0.0.1"), 8787)
+    address = (
+        os.getenv("SHIELDAI_BIND_HOST", "127.0.0.1"),
+        int(os.getenv("SHIELDAI_PORT", "8787")),
+    )
     print(f"ShieldAI dashboard running at http://{address[0]}:{address[1]}")
     ThreadingHTTPServer(address, ShieldAIHandler).serve_forever()
 
