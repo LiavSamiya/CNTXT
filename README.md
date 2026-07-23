@@ -16,10 +16,11 @@ Project Falcon is delayed at North Ridge Test Facility.
 [PROJECT_1] is delayed at [LOCATION_1].
 ```
 
-No external AI model is used to detect sensitive data. For the detailed Hebrew
+For the detailed Hebrew
 project page, see [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md). For a
 presentation flow, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
+<<<<<<< HEAD
 ## Built at OpenAI Build Week — Tel Aviv
 
 CNTXT was conceived and developed as a live, working MVP at the **OpenAI Build
@@ -35,6 +36,18 @@ does not imply an endorsement or affiliation by OpenAI.
 - [Pitch deck (PDF)](docs/Cntxt-Pitch-Deck.pdf)
 - [Hackathon story and acknowledgments](docs/HACKATHON_CREDITS.md)
 - [Detailed project overview (Hebrew)](docs/PROJECT_OVERVIEW.md)
+=======
+## Team credits
+
+Built by the ShieldAI / CNTXT team:
+
+| Team member | LinkedIn |
+| --- | --- |
+| Liav Samiya | [linkedin.com/in/liav-samiya](https://www.linkedin.com/in/liav-samiya/) |
+| Naveh Talor | [linkedin.com/in/naveh-talor-a2636810a](https://www.linkedin.com/in/naveh-talor-a2636810a/) |
+| Daniel Armoni | [linkedin.com/in/daniel-armoni](https://www.linkedin.com/in/daniel-armoni/) |
+| Gal Shitrit | [linkedin.com/in/gal-shitrit-](https://www.linkedin.com/in/gal-shitrit-/) |
+>>>>>>> 0093a0759e709567e679b5c9bcc65f5c7d6634b5
 
 ## What works today
 
@@ -339,6 +352,7 @@ pastes secrets directly into a third-party chat.
 For the architecture story, exact current-state assessment and presentation
 positioning, read [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md).
 
+<<<<<<< HEAD
 ## Team credits
 
 Built by the ShieldAI / CNTXT team:
@@ -358,6 +372,8 @@ gratitude to **OpenAI Build Week**, **OpenAI Codex**, organizers
 [Eliezer Steinbock](https://www.linkedin.com/in/elie222/), and hosts **Echo**
 and **Xsolla**. See [the full attribution and project origin](docs/HACKATHON_CREDITS.md).
 
+=======
+>>>>>>> 0093a0759e709567e679b5c9bcc65f5c7d6634b5
 ## License
 
 This project is distributed under the [BSD 3-Clause License](LICENSE).
